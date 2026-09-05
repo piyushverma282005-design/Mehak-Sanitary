@@ -3,7 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, X, Upload } from 'lucide-react';
+import {
+  ArrowLeft,
+  Save,
+  Plus,
+  Trash2,
+  Image as ImageIcon,
+  X,
+  Upload,
+  Layers,
+  FileText,
+  Sliders,
+  CheckCircle2,
+} from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { compressImageFile } from '@/lib/imageCompression';
 
@@ -133,146 +145,157 @@ export default function AddProductPage() {
       <div className="flex items-center justify-between">
         <Link
           href="/admin/products"
-          className="inline-flex items-center text-xs font-semibold text-slate-600 hover:text-slate-900 gap-1.5"
+          className="inline-flex items-center text-xs font-bold text-slate-600 hover:text-slate-900 gap-1.5"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Products List
+          Back to Catalogue
         </Link>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-2xs">
+      <div className="space-y-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-            Add New Product
-          </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Create a new sanitary hardware product entry in the database.
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Add New Product</h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Fill in the specifications and image details to publish a new sanitary hardware item.
           </p>
         </div>
 
         {error && (
-          <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium">
+          <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-2xl">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Grid 1: Name & Category */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* SECTION 1: BASIC INFORMATION */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-5">
+            <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+              <Layers className="w-4 h-4 text-slate-800" />
+              <h3 className="font-extrabold text-slate-900 text-sm">General Details</h3>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Product Title <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Heavy Brass Angle Valve"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs font-medium border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Category <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-slate-900 outline-none font-bold"
+                >
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  URL Slug (Auto-generated if empty)
+                </label>
+                <input
+                  type="text"
+                  placeholder="brass-angle-valve"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none font-mono text-slate-600"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Material / Finish
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Chrome Plated Brass / 304 Stainless Steel"
+                  value={material}
+                  onChange={(e) => setMaterial(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs font-medium border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none"
+                />
+              </div>
+            </div>
+
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Product Name <span className="text-red-500">*</span>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Short Tagline / Summary
               </label>
               <input
                 type="text"
+                placeholder="High durability 1/2 inch ceramic cartridge angle valve"
+                value={shortDescription}
+                onChange={(e) => setShortDescription(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-xs font-medium border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Full Description <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                rows={4}
                 required
-                placeholder="e.g. Brass Angle Valve"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Category <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-slate-900 outline-none font-medium"
-              >
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Grid 2: Slug & Material */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Custom URL Slug (Optional)
-              </label>
-              <input
-                type="text"
-                placeholder="brass-angle-valve"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none font-mono text-xs"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Material / Finish (Optional)
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Heavy Brass Alloy / 304 SS"
-                value={material}
-                onChange={(e) => setMaterial(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none"
+                placeholder="Provide detailed description of product features, build quality, water flow specification, and applications..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-xs font-medium border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none resize-none"
               />
             </div>
           </div>
 
-          {/* Short Description */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Short Description
-            </label>
-            <input
-              type="text"
-              placeholder="Brief 1-sentence product summary"
-              value={shortDescription}
-              onChange={(e) => setShortDescription(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none"
-            />
-          </div>
-
-          {/* Full Description */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Full Description <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              rows={4}
-              required
-              placeholder="Detailed product features and applications..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none resize-none"
-            />
-          </div>
-
-          {/* Image Upload Area */}
-          <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 space-y-4">
-            <label className="block text-xs font-semibold text-slate-700">
-              Product Image
-            </label>
+          {/* SECTION 2: PRODUCT IMAGE UPLOAD DROPZONE */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-slate-800" />
+                <h3 className="font-extrabold text-slate-900 text-sm">Product Photo Gallery</h3>
+              </div>
+              <span className="text-[11px] font-semibold text-slate-400">Main Display Image</span>
+            </div>
 
             {image ? (
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div className="relative w-28 h-28 rounded-xl overflow-hidden border border-slate-300 bg-white shadow-xs shrink-0">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 p-4 rounded-xl border border-emerald-200 bg-emerald-50/50">
+                <div className="relative w-32 h-32 rounded-xl overflow-hidden border border-slate-300 bg-white shadow-sm shrink-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={image}
-                    alt="Product Image Preview"
+                    alt="Product Preview"
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="space-y-2">
-                  <span className="text-xs font-bold text-emerald-700 block flex items-center gap-1">
-                    <ImageIcon className="w-4 h-4 text-emerald-600" /> Photo Attached Successfully
-                  </span>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>Image Processed & Uploaded</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 max-w-sm">
+                    This photo will be displayed on product listing cards, search results, and details pages.
+                  </p>
+
                   <div className="flex items-center gap-2">
-                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold cursor-pointer transition-colors">
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold cursor-pointer transition-colors shadow-2xs">
                       <Upload className="w-3.5 h-3.5 text-slate-300" />
-                      <span>{uploading ? 'Uploading...' : 'Change Image'}</span>
+                      <span>{uploading ? 'Compressing...' : 'Change Image'}</span>
                       <input
                         type="file"
                         accept="image/jpeg,image/png,image/webp,image/avif"
@@ -285,7 +308,7 @@ export default function AddProductPage() {
                     <button
                       type="button"
                       onClick={() => setImage(null)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 text-xs font-semibold cursor-pointer transition-colors"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold cursor-pointer transition-colors"
                     >
                       <X className="w-3.5 h-3.5" />
                       <span>Remove Photo</span>
@@ -294,92 +317,115 @@ export default function AddProductPage() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
-                <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold cursor-pointer transition-colors shadow-2xs">
-                  <Upload className="w-4 h-4 text-slate-300" />
-                  <span>{uploading ? 'Uploading & Processing Image...' : 'Upload Image'}</span>
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,image/avif"
-                    onChange={handleImageUpload}
-                    disabled={uploading}
-                    className="hidden"
-                  />
-                </label>
-                <p className="text-[11px] text-slate-500">
-                  Supported formats: JPEG, PNG, WEBP, AVIF (Max 5MB). Photo will be displayed on website.
-                </p>
+              <div className="border-2 border-dashed border-slate-300 hover:border-slate-400 rounded-2xl p-8 text-center bg-slate-50/60 space-y-3 transition-colors">
+                <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mx-auto text-slate-400 shadow-xs">
+                  <Upload className="w-6 h-6 text-slate-500" />
+                </div>
+                <div>
+                  <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-extrabold cursor-pointer transition-colors shadow-md">
+                    <span>{uploading ? 'Processing Image...' : 'Select Product Image'}</span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/avif"
+                      onChange={handleImageUpload}
+                      disabled={uploading}
+                      className="hidden"
+                    />
+                  </label>
+                  <p className="text-[11px] text-slate-500 mt-2">
+                    Supports high quality JPEG, PNG, WEBP, or AVIF images up to 5MB. Automatic optimization applied.
+                  </p>
+                </div>
               </div>
             )}
           </div>
 
-          {/* Specifications List */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-semibold text-slate-700">
-                Product Specifications (Optional)
-              </label>
+          {/* SECTION 3: SPECIFICATIONS LIST */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-slate-800" />
+                <h3 className="font-extrabold text-slate-900 text-sm">Technical Specifications</h3>
+              </div>
               <button
                 type="button"
                 onClick={handleAddSpec}
-                className="inline-flex items-center gap-1 text-xs font-bold text-slate-900 hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline"
               >
-                <Plus className="w-3.5 h-3.5" /> Add Spec Line
+                <Plus className="w-4 h-4" /> Add Spec Line
               </button>
             </div>
 
-            {specifications.map((spec, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder="Label (e.g. Thread Size)"
-                  value={spec.label}
-                  onChange={(e) => handleSpecChange(idx, 'label', e.target.value)}
-                  className="w-1/2 px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none"
-                />
-                <input
-                  type="text"
-                  placeholder="Value (e.g. 1/2 Inch)"
-                  value={spec.value}
-                  onChange={(e) => handleSpecChange(idx, 'value', e.target.value)}
-                  className="w-1/2 px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveSpec(idx)}
-                  className="p-1.5 text-red-600 hover:bg-red-50 rounded-md"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+            {specifications.length > 0 ? (
+              <div className="space-y-2">
+                {specifications.map((spec, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Spec Name (e.g. Thread Size)"
+                      value={spec.label}
+                      onChange={(e) => handleSpecChange(idx, 'label', e.target.value)}
+                      className="w-1/2 px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none font-semibold"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Value (e.g. 1/2 Inch Male)"
+                      value={spec.value}
+                      onChange={(e) => handleSpecChange(idx, 'value', e.target.value)}
+                      className="w-1/2 px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSpec(idx)}
+                      className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-colors shrink-0"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              <p className="text-xs text-slate-400 italic">No specifications added yet. Click &quot;Add Spec Line&quot; to add technical details.</p>
+            )}
           </div>
 
-          {/* Toggles: Featured & Available */}
-          <div className="flex items-center gap-6 pt-2">
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
-              <input
-                type="checkbox"
-                checked={featured}
-                onChange={(e) => setFeatured(e.target.checked)}
-                className="w-4 h-4 rounded text-slate-900 focus:ring-slate-900"
-              />
-              <span>Mark as Featured Product</span>
-            </label>
+          {/* SECTION 4: CATALOGUE VISIBILITY & FEATURED STATUS */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
+            <h3 className="font-extrabold text-slate-900 text-sm pb-2 border-b border-slate-100">
+              Catalogue Visibility & Badges
+            </h3>
 
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
-              <input
-                type="checkbox"
-                checked={available}
-                onChange={(e) => setAvailable(e.target.checked)}
-                className="w-4 h-4 rounded text-slate-900 focus:ring-slate-900"
-              />
-              <span>Active in Public Catalogue</span>
-            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <label className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={featured}
+                  onChange={(e) => setFeatured(e.target.checked)}
+                  className="w-4 h-4 rounded text-slate-900 focus:ring-slate-900"
+                />
+                <div>
+                  <span className="text-xs font-bold text-slate-900 block">Featured Product</span>
+                  <span className="text-[11px] text-slate-500 block">Highlight on Homepage featured carousel</span>
+                </div>
+              </label>
+
+              <label className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={available}
+                  onChange={(e) => setAvailable(e.target.checked)}
+                  className="w-4 h-4 rounded text-slate-900 focus:ring-slate-900"
+                />
+                <div>
+                  <span className="text-xs font-bold text-slate-900 block">Active in Catalogue</span>
+                  <span className="text-[11px] text-slate-500 block">Visible to customers on public website</span>
+                </div>
+              </label>
+            </div>
           </div>
 
-          {/* Actions */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+          {/* SUBMIT BUTTON BAR */}
+          <div className="pt-2 flex items-center justify-end gap-3">
             <Button variant="ghost" size="md" href="/admin/products">
               Cancel
             </Button>
@@ -390,7 +436,7 @@ export default function AddProductPage() {
               disabled={loading || uploading}
               icon={<Save className="w-4 h-4" />}
             >
-              {loading ? 'Saving...' : 'Save Product to Database'}
+              {loading ? 'Publishing...' : 'Save Product to Database'}
             </Button>
           </div>
         </form>
