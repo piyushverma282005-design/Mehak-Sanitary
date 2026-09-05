@@ -39,10 +39,13 @@ export async function POST(request: Request) {
       { message: 'Enquiry submitted successfully', id: newEnquiry.id },
       { status: 201 }
     );
-  } catch (error) {
-    console.error('Error submitting enquiry:', error);
+  } catch (error: any) {
+    console.error('Error submitting enquiry to Prisma/Neon:', error);
     return NextResponse.json(
-      { error: 'Server error while saving enquiry. Please try again.' },
+      {
+        error: 'Server error while saving enquiry. Please try again.',
+        details: process.env.NODE_ENV === 'development' ? error?.message : undefined,
+      },
       { status: 500 }
     );
   }
