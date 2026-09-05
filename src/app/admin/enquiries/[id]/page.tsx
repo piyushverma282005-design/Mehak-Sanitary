@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, User, Phone, Mail, Building2, MapPin, Package, MessageSquare, Clock, Save, RefreshCw } from 'lucide-react';
+import { ArrowLeft, User, Phone, Mail, Building2, MapPin, Package, MessageSquare, Clock, Save, RefreshCw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 interface EnquiryDetail {
@@ -32,6 +32,7 @@ export default function EnquiryDetailPage() {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<string>('NEW');
   const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
@@ -78,6 +79,24 @@ export default function EnquiryDetailPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this enquiry? This action cannot be undone.')) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/enquiries/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        router.push('/admin/enquiries');
+      }
+    } catch (err) {
+      console.error('Error deleting enquiry:', err);
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="py-20 text-center text-slate-500 flex flex-col items-center gap-2">
@@ -108,6 +127,16 @@ export default function EnquiryDetailPage() {
           <ArrowLeft className="w-4 h-4" />
           Back to Customer Enquiries
         </Link>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDelete}
+          disabled={deleting}
+          className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+          icon={<Trash2 className="w-3.5 h-3.5" />}
+        >
+          {deleting ? 'Deleting...' : 'Delete Lead'}
+        </Button>
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 space-y-8 shadow-2xs">

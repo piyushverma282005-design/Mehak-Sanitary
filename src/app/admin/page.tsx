@@ -21,6 +21,9 @@ interface DashboardMetrics {
   featuredProducts: number;
   totalEnquiries: number;
   newEnquiries: number;
+  contactedEnquiries: number;
+  inProgressEnquiries: number;
+  completedEnquiries: number;
   categoriesCount: number;
   recentEnquiries: Array<{
     id: string;
@@ -54,9 +57,13 @@ export default function AdminDashboardPage() {
       const totalProducts = products.length;
       const activeProducts = products.filter((p: any) => p.available).length;
       const featuredProducts = products.filter((p: any) => p.featured || p.isFeatured).length;
+      const categoriesCount = categories.length;
+
       const totalEnquiries = enquiries.length;
       const newEnquiries = enquiries.filter((e: any) => e.status === 'NEW').length;
-      const categoriesCount = categories.length;
+      const contactedEnquiries = enquiries.filter((e: any) => e.status === 'CONTACTED').length;
+      const inProgressEnquiries = enquiries.filter((e: any) => e.status === 'IN_PROGRESS').length;
+      const completedEnquiries = enquiries.filter((e: any) => e.status === 'COMPLETED').length;
 
       setMetrics({
         totalProducts,
@@ -64,6 +71,9 @@ export default function AdminDashboardPage() {
         featuredProducts,
         totalEnquiries,
         newEnquiries,
+        contactedEnquiries,
+        inProgressEnquiries,
+        completedEnquiries,
         categoriesCount,
         recentEnquiries: enquiries.slice(0, 5),
       });
@@ -82,33 +92,12 @@ export default function AdminDashboardPage() {
     return (
       <div className="py-20 text-center text-slate-500 flex flex-col items-center gap-3">
         <RefreshCw className="w-6 h-6 animate-spin" />
-        <span>Loading Real Database Metrics...</span>
+        <span>Loading Dashboard Metrics...</span>
       </div>
     );
   }
 
   const statCards = [
-    {
-      title: 'Total Products',
-      value: metrics?.totalProducts || 0,
-      icon: Package,
-      color: 'bg-slate-900 text-white',
-      link: '/admin/products',
-    },
-    {
-      title: 'Active Products',
-      value: metrics?.activeProducts || 0,
-      icon: CheckCircle2,
-      color: 'bg-emerald-600 text-white',
-      link: '/admin/products',
-    },
-    {
-      title: 'Featured Products',
-      value: metrics?.featuredProducts || 0,
-      icon: Star,
-      color: 'bg-amber-500 text-white',
-      link: '/admin/products?featured=true',
-    },
     {
       title: 'Total Enquiries',
       value: metrics?.totalEnquiries || 0,
@@ -124,11 +113,32 @@ export default function AdminDashboardPage() {
       link: '/admin/enquiries?status=NEW',
     },
     {
-      title: 'Categories',
-      value: metrics?.categoriesCount || 0,
-      icon: FolderTree,
-      color: 'bg-slate-700 text-white',
-      link: '/admin/categories',
+      title: 'Contacted',
+      value: metrics?.contactedEnquiries || 0,
+      icon: CheckCircle2,
+      color: 'bg-indigo-600 text-white',
+      link: '/admin/enquiries?status=CONTACTED',
+    },
+    {
+      title: 'In Progress',
+      value: metrics?.inProgressEnquiries || 0,
+      icon: RefreshCw,
+      color: 'bg-amber-500 text-white',
+      link: '/admin/enquiries?status=IN_PROGRESS',
+    },
+    {
+      title: 'Completed',
+      value: metrics?.completedEnquiries || 0,
+      icon: CheckCircle2,
+      color: 'bg-emerald-600 text-white',
+      link: '/admin/enquiries?status=COMPLETED',
+    },
+    {
+      title: 'Total Products',
+      value: metrics?.totalProducts || 0,
+      icon: Package,
+      color: 'bg-slate-900 text-white',
+      link: '/admin/products',
     },
   ];
 
