@@ -24,7 +24,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onEnquire }) 
               alt={`Mehak ${product.name}`}
               fill
               loading="lazy"
-              unoptimized={product.image.startsWith('data:') || product.image.startsWith('http')}
+              unoptimized={true}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
             />

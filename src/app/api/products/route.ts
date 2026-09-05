@@ -4,6 +4,9 @@ import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
 import { productSchema } from '@/lib/validations';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Public GET products with optional filters
 export async function GET(request: Request) {
   try {
@@ -80,7 +83,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(mapped, {
       headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
       },
     });
   } catch (error) {

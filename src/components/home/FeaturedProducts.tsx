@@ -15,7 +15,7 @@ export const FeaturedProducts: React.FC = () => {
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
   useEffect(() => {
-    fetch('/api/products?featured=true')
+    fetch('/api/products', { cache: 'no-store' })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
@@ -30,7 +30,10 @@ export const FeaturedProducts: React.FC = () => {
     setIsEnquiryOpen(true);
   };
 
-  const featuredProducts = products.filter((p) => p.isFeatured || p.featured).slice(0, 6);
+  const featuredProducts = React.useMemo(() => {
+    const featuredList = products.filter((p) => p.isFeatured || p.featured);
+    return (featuredList.length > 0 ? featuredList : products).slice(0, 6);
+  }, [products]);
 
   return (
     <section className="py-16 sm:py-24 bg-slate-50 border-b border-slate-200/80">
