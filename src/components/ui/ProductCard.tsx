@@ -23,7 +23,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onEnquire }) 
               src={product.image}
               alt={`Mehak ${product.name}`}
               fill
-              unoptimized={product.image.startsWith('data:')}
+              loading="lazy"
+              unoptimized={product.image.startsWith('data:') || product.image.startsWith('http')}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
             />

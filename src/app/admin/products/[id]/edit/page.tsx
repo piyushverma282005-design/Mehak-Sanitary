@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save, Plus, Trash2, RefreshCw, Image as ImageIcon, X, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { compressImageFile } from '@/lib/imageCompression';
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -74,10 +75,11 @@ export default function EditProductPage() {
     setUploading(true);
     setError('');
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
+      const compressedFile = await compressImageFile(file);
+      const formData = new FormData();
+      formData.append('file', compressedFile);
+
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,

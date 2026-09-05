@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
 import { productSchema } from '@/lib/validations';
@@ -33,8 +34,25 @@ export async function GET(request: Request) {
 
     const products = await prisma.product.findMany({
       where: whereClause,
-      include: {
-        category: true,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        categoryId: true,
+        shortDescription: true,
+        material: true,
+        featured: true,
+        available: true,
+        image: true,
+        createdAt: true,
+        updatedAt: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -48,19 +66,23 @@ export async function GET(request: Request) {
       categoryName: p.category.name,
       categoryId: p.categoryId,
       shortDescription: p.shortDescription || '',
-      description: p.description,
+      description: p.shortDescription || '',
       material: p.material || undefined,
       featured: p.featured,
       isFeatured: p.featured,
       available: p.available,
       image: p.image,
-      gallery: p.gallery,
-      specifications: (p.specifications as any) || [],
+      gallery: [],
+      specifications: [],
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
     }));
 
-    return NextResponse.json(mapped);
+    return NextResponse.json(mapped, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+      },
+    });
   } catch (error) {
     console.error('Error fetching products:', error);
     return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
@@ -110,6 +132,11 @@ export async function POST(request: Request) {
       },
       include: { category: true },
     });
+
+    // Revalidate Edge CDN cache & Next.js static pages
+    revalidatePath('/products');
+    revalidatePath('/');
+    revalidatePath('/api/products');
 
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {

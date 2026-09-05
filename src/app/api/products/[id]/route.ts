@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
 import { productSchema } from '@/lib/validations';
@@ -22,25 +23,32 @@ export async function GET(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    return NextResponse.json({
-      id: product.id,
-      name: product.name,
-      slug: product.slug,
-      category: product.category.slug,
-      categoryName: product.category.name,
-      categoryId: product.categoryId,
-      shortDescription: product.shortDescription || '',
-      description: product.description,
-      material: product.material || undefined,
-      featured: product.featured,
-      isFeatured: product.featured,
-      available: product.available,
-      image: product.image,
-      gallery: product.gallery,
-      specifications: (product.specifications as any) || [],
-      createdAt: product.createdAt,
-      updatedAt: product.updatedAt,
-    });
+    return NextResponse.json(
+      {
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        category: product.category.slug,
+        categoryName: product.category.name,
+        categoryId: product.categoryId,
+        shortDescription: product.shortDescription || '',
+        description: product.description,
+        material: product.material || undefined,
+        featured: product.featured,
+        isFeatured: product.featured,
+        available: product.available,
+        image: product.image,
+        gallery: product.gallery,
+        specifications: (product.specifications as any) || [],
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt,
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        },
+      }
+    );
   } catch (error) {
     console.error('Error fetching product:', error);
     return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 });
@@ -88,6 +96,11 @@ export async function PUT(request: Request, { params }: RouteParams) {
       include: { category: true },
     });
 
+    revalidatePath('/products');
+    revalidatePath('/');
+    revalidatePath(`/products/${slug}`);
+    revalidatePath('/api/products');
+
     return NextResponse.json(updatedProduct);
   } catch (error) {
     console.error('Error updating product:', error);
@@ -105,9 +118,16 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   const { id } = await params;
 
   try {
-    await prisma.product.delete({
+    const deleted = await prisma.product.delete({
       where: { id },
     });
+
+    revalidatePath('/products');
+    revalidatePath('/');
+    if (deleted?.slug) {
+      revalidatePath(`/products/${deleted.slug}`);
+    }
+    revalidatePath('/api/products');
 
     return NextResponse.json({ message: 'Product deleted successfully' });
   } catch (error) {
