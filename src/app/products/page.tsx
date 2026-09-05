@@ -20,6 +20,13 @@ function CatalogueContent() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
+  useEffect(() => {
+    const cat = searchParams?.get('category');
+    if (cat) {
+      setSelectedCategory(cat);
+    }
+  }, [searchParams]);
+
   // Fetch live products from backend database API
   useEffect(() => {
     fetch('/api/products')

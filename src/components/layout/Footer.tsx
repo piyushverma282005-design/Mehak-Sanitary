@@ -17,8 +17,8 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8 pb-12 border-b border-slate-800">
           {/* Column 1 & 2: Official Logo & Brand Overview */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-3.5">
-              <div className="relative h-14 w-14 rounded-xl bg-black overflow-hidden flex items-center justify-center border border-slate-800 shadow-md shrink-0">
+            <Link href="/" className="flex items-center gap-3.5 group cursor-pointer">
+              <div className="relative h-14 w-14 rounded-xl bg-black overflow-hidden flex items-center justify-center border border-slate-800 shadow-md shrink-0 group-hover:border-slate-700 transition-colors">
                 <Image
                   src="/images/mehak-logo.png"
                   alt={`Mehak - ${settings.name}`}
@@ -28,14 +28,14 @@ export const Footer: React.FC = () => {
                 />
               </div>
               <div>
-                <span className="text-2xl font-black text-white tracking-tight block">
+                <span className="text-2xl font-black text-white tracking-tight block group-hover:text-slate-200 transition-colors">
                   {settings.brand}
                 </span>
                 <span className="text-xs text-slate-400 font-semibold uppercase tracking-widest block">
                   by {settings.name}
                 </span>
               </div>
-            </div>
+            </Link>
             <p className="text-sm text-slate-400 leading-relaxed max-w-md line-clamp-3">
               {settings.description}
             </p>
@@ -151,19 +151,25 @@ export const Footer: React.FC = () => {
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
                 <div className="flex flex-col gap-1">
-                  <span className="text-slate-400 text-xs">
-                    {settings.address}, {settings.city}, {settings.state} - {settings.pincode}, {settings.country}
-                  </span>
-                  {settings.googleMapsUrl && (
+                  {settings.googleMapsUrl ? (
                     <a
                       href={settings.googleMapsUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-blue-400 hover:underline flex items-center gap-1"
+                      className="text-slate-400 text-xs hover:text-white transition-colors group flex flex-col gap-1"
                     >
-                      <span>Open in Google Maps</span>
-                      <ArrowUpRight className="w-3 h-3" />
+                      <span>
+                        {settings.address}, {settings.city}, {settings.state} - {settings.pincode}, {settings.country}
+                      </span>
+                      <span className="text-xs text-blue-400 group-hover:underline flex items-center gap-1">
+                        <span>Open in Google Maps</span>
+                        <ArrowUpRight className="w-3 h-3" />
+                      </span>
                     </a>
+                  ) : (
+                    <span className="text-slate-400 text-xs">
+                      {settings.address}, {settings.city}, {settings.state} - {settings.pincode}, {settings.country}
+                    </span>
                   )}
                 </div>
               </li>
@@ -171,18 +177,42 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Bar: Copyright */}
+        {/* Bottom Bar: Copyright & Social Links */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <p>
             © {new Date().getFullYear()} {settings.name} — Brand: {settings.brand}. All rights reserved.
           </p>
           <div className="flex items-center space-x-4">
-            <span className="hover:text-slate-200 transition-colors cursor-pointer inline-flex items-center gap-1">
-              LinkedIn Placeholder <ArrowUpRight className="w-3 h-3" />
-            </span>
-            <span className="hover:text-slate-200 transition-colors cursor-pointer inline-flex items-center gap-1">
-              Indiamart Placeholder <ArrowUpRight className="w-3 h-3" />
-            </span>
+            {settings.instagramUrl && (
+              <a
+                href={settings.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-slate-200 transition-colors inline-flex items-center gap-1"
+              >
+                <span>Instagram</span> <ArrowUpRight className="w-3 h-3" />
+              </a>
+            )}
+            {settings.facebookUrl && (
+              <a
+                href={settings.facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-slate-200 transition-colors inline-flex items-center gap-1"
+              >
+                <span>Facebook</span> <ArrowUpRight className="w-3 h-3" />
+              </a>
+            )}
+            {settings.youtubeUrl && (
+              <a
+                href={settings.youtubeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-slate-200 transition-colors inline-flex items-center gap-1"
+              >
+                <span>YouTube</span> <ArrowUpRight className="w-3 h-3" />
+              </a>
+            )}
           </div>
         </div>
       </div>
