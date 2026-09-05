@@ -243,13 +243,26 @@ export default function EnquiryDetailPage() {
             )}
 
             {enquiry.email && (
-              <a
-                href={`mailto:${enquiry.email}`}
-                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-extrabold transition-colors border border-slate-700"
-              >
-                <Mail className="w-4 h-4 text-blue-400" />
-                <span>Email</span>
-              </a>
+              <div className="flex items-center gap-2">
+                <a
+                  href={`mailto:${enquiry.email.trim()}`}
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-extrabold transition-colors border border-slate-700"
+                  title="Open in default mail client"
+                >
+                  <Mail className="w-4 h-4 text-blue-400" />
+                  <span>Mail App</span>
+                </a>
+                <a
+                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(enquiry.email.trim())}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-rose-800 hover:bg-rose-700 text-white text-xs font-extrabold transition-colors border border-rose-700"
+                  title="Open in Gmail Web"
+                >
+                  <ExternalLink className="w-4 h-4 text-white" />
+                  <span>Gmail Web</span>
+                </a>
+              </div>
             )}
           </div>
         </div>

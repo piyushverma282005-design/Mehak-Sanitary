@@ -138,12 +138,24 @@ export const Footer: React.FC = () => {
               {settings.email && (
                 <li className="flex items-center gap-2.5">
                   <Mail className="w-4 h-4 text-slate-400 shrink-0" />
-                  <a
-                    href={`mailto:${settings.email}`}
-                    className="hover:text-white transition-colors text-xs break-all"
-                  >
-                    {settings.email}
-                  </a>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <a
+                      href={`mailto:${settings.email.trim()}`}
+                      className="hover:text-white transition-colors text-xs break-all"
+                      title="Open default mail app"
+                    >
+                      {settings.email.trim()}
+                    </a>
+                    <a
+                      href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(settings.email.trim())}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] text-slate-400 hover:text-emerald-400 font-medium transition-colors border border-slate-700 rounded px-1.5 py-0.5"
+                      title="Open in Gmail Web"
+                    >
+                      Gmail Web
+                    </a>
+                  </div>
                 </li>
               )}
 

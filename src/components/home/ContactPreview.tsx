@@ -69,13 +69,24 @@ export const ContactPreview: React.FC = () => {
             </div>
             <h3 className="text-base font-bold text-slate-900 mb-2">Official Email</h3>
             {settings.email && (
-              <a
-                href={`mailto:${settings.email}`}
-                className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded border border-slate-200 transition-colors mb-3"
-              >
-                <span className="break-all">{settings.email}</span>
-                <ExternalLink className="w-3 h-3 shrink-0" />
-              </a>
+              <div className="space-y-2 mb-3">
+                <a
+                  href={`mailto:${settings.email.trim()}`}
+                  className="inline-flex items-center justify-between gap-1.5 text-xs font-mono font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded border border-slate-200 transition-colors w-full"
+                >
+                  <span className="break-all">{settings.email.trim()}</span>
+                  <ExternalLink className="w-3 h-3 shrink-0" />
+                </a>
+                <a
+                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(settings.email.trim())}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[11px] font-semibold text-rose-600 hover:underline flex items-center gap-1"
+                >
+                  <span>Open in Gmail Web</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
             )}
             <p className="text-xs text-slate-500 mt-auto">Click to email official inquiries.</p>
           </Card>

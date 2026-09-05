@@ -152,17 +152,26 @@ export default function ContactPage() {
                   <div className="space-y-2 flex-1">
                     <h4 className="font-bold text-slate-900 text-sm">Email</h4>
                     <a
-                      href={`mailto:${settings.email}`}
+                      href={`mailto:${settings.email.trim()}`}
                       className="text-xs font-semibold text-slate-800 bg-slate-100 hover:bg-slate-200 hover:text-slate-900 px-2.5 py-1 rounded inline-block break-all transition-colors"
                     >
-                      {settings.email}
+                      {settings.email.trim()}
                     </a>
-                    <div>
+                    <div className="flex flex-wrap gap-2 pt-1">
                       <a
-                        href={`mailto:${settings.email}`}
-                        className="inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 px-3.5 py-1.5 gap-1.5 bg-slate-900 text-white hover:bg-slate-800 focus:ring-slate-900 shadow-sm hover:shadow-md active:translate-y-0.5 text-xs"
+                        href={`mailto:${settings.email.trim()}`}
+                        className="inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 px-3 py-1.5 gap-1.5 bg-slate-900 text-white hover:bg-slate-800 focus:ring-slate-900 shadow-sm hover:shadow-md active:translate-y-0.5 text-xs"
                       >
-                        Send an Email
+                        Send Mail (App)
+                        <span className="inline-flex shrink-0"><ExternalLink className="w-3.5 h-3.5" /></span>
+                      </a>
+                      <a
+                        href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(settings.email.trim())}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 px-3 py-1.5 gap-1.5 bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-600 shadow-sm hover:shadow-md active:translate-y-0.5 text-xs"
+                      >
+                        Open Gmail Web
                         <span className="inline-flex shrink-0"><ExternalLink className="w-3.5 h-3.5" /></span>
                       </a>
                     </div>
