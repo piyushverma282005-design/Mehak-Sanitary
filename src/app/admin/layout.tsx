@@ -60,11 +60,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <>{children}</>;
   }
 
-  if (loading) {
+  if (loading || !adminUser) {
     return (
       <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center space-y-4">
         <div className="w-10 h-10 border-4 border-slate-700 border-t-white rounded-full animate-spin" />
-        <p className="text-sm font-medium text-slate-300">Verifying Admin Session...</p>
+        <p className="text-sm font-medium text-slate-300">
+          {loading ? 'Verifying Admin Session...' : 'Redirecting to Admin Login...'}
+        </p>
       </div>
     );
   }
