@@ -8,9 +8,14 @@ interface SendPasswordResetEmailParams {
 export async function sendPasswordResetEmail({ toEmail, resetToken }: SendPasswordResetEmailParams): Promise<{ success: boolean; error?: string }> {
   const apiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.ADMIN_EMAIL_FROM || 'Mehak Sanitary Admin <onboarding@resend.dev>';
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL 
+  
+  const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL 
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` 
     : 'https://mehak-sanitary.vercel.app');
+
+  const appUrl = rawAppUrl.startsWith('http://') || rawAppUrl.startsWith('https://') 
+    ? rawAppUrl.replace(/\/$/, '') 
+    : `https://${rawAppUrl.replace(/\/$/, '')}`;
 
   const resetUrl = `${appUrl}/admin/reset-password?token=${resetToken}`;
 
@@ -60,7 +65,7 @@ export async function sendPasswordResetEmail({ toEmail, resetToken }: SendPasswo
   `;
 
   if (!apiKey) {
-    console.warn('[EMAIL WARNING] RESEND_API_KEY environment variable is not configured. Reset link generated but email dispatches require RESEND_API_KEY.');
+    console.warn('[EMAIL WARNING] RESEND_API_KEY environment variable is not configured. Reset token generated in DB, but email dispatch requires RESEND_API_KEY in Vercel.');
     return { success: false, error: 'RESEND_API_KEY_MISSING' };
   }
 

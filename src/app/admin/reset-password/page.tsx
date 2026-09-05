@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Lock, ArrowRight, ShieldAlert, KeyRound } from 'lucide-react';
+import { Lock, ArrowRight, ShieldAlert, KeyRound, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 function ResetPasswordForm() {
@@ -11,25 +11,66 @@ function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams?.get('token') || '';
 
+  const [checkingToken, setCheckingToken] = useState(true);
+  const [tokenValid, setTokenValid] = useState(false);
+  const [tokenError, setTokenError] = useState('');
+
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (!token) {
+  useEffect(() => {
+    async function verifyToken() {
+      if (!token) {
+        setTokenError('Password reset token is missing from URL.');
+        setCheckingToken(false);
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/auth/reset-password?token=${encodeURIComponent(token)}`);
+        const data = await res.json();
+
+        if (res.ok && data.valid) {
+          setTokenValid(true);
+        } else {
+          setTokenError(data.error || 'This password reset link is invalid, expired, or has already been used.');
+        }
+      } catch (err) {
+        console.error('Error verifying reset token:', err);
+        setTokenError('Connection error verifying reset link. Please try requesting a new link.');
+      } finally {
+        setCheckingToken(false);
+      }
+    }
+
+    verifyToken();
+  }, [token]);
+
+  if (checkingToken) {
+    return (
+      <div className="w-full max-w-md bg-slate-800/80 backdrop-blur-md rounded-2xl border border-slate-700/80 shadow-2xl p-8 text-center space-y-3 text-slate-400 relative z-10">
+        <RefreshCw className="w-6 h-6 animate-spin mx-auto text-slate-300" />
+        <p className="text-xs font-semibold">Verifying reset token security...</p>
+      </div>
+    );
+  }
+
+  if (!tokenValid || tokenError) {
     return (
       <div className="w-full max-w-md bg-slate-800/80 backdrop-blur-md rounded-2xl border border-slate-700/80 shadow-2xl p-8 text-center space-y-6 relative z-10">
         <div className="mx-auto w-12 h-12 rounded-full bg-red-950/80 border border-red-800/80 flex items-center justify-center">
           <ShieldAlert className="w-6 h-6 text-red-400" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-xl font-bold text-white">Missing Reset Token</h2>
-          <p className="text-xs text-slate-400">
-            This password reset link is invalid or incomplete. Please request a new link from the forgot password page.
+          <h2 className="text-xl font-bold text-white">Invalid or Expired Link</h2>
+          <p className="text-xs text-slate-300/90 leading-relaxed">
+            {tokenError || 'This password reset link is invalid, expired, or has already been used. Please request a new link.'}
           </p>
         </div>
         <Button variant="metallic" size="md" href="/admin/forgot-password" fullWidth>
-          Request New Password Reset Link
+          Request New Reset Link
         </Button>
       </div>
     );

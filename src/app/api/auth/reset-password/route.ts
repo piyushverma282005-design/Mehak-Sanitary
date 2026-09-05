@@ -3,6 +3,42 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 
+// GET: Validate password reset token state (valid/invalid/expired/used)
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const token = searchParams.get('token');
+
+    if (!token || typeof token !== 'string') {
+      return NextResponse.json(
+        { valid: false, error: 'Password reset token is missing.' },
+        { status: 400 }
+      );
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const tokenRecord = await prisma.passwordResetToken.findUnique({
+      where: { tokenHash },
+    });
+
+    if (!tokenRecord || tokenRecord.used || new Date() > tokenRecord.expiresAt) {
+      return NextResponse.json(
+        { valid: false, error: 'This password reset link is invalid, expired, or has already been used.' },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json({ valid: true });
+  } catch (error) {
+    console.error('[VERIFY RESET TOKEN API ERROR]', error);
+    return NextResponse.json(
+      { valid: false, error: 'Failed to verify reset token.' },
+      { status: 500 }
+    );
+  }
+}
+
+// POST: Execute password reset
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
@@ -59,16 +95,25 @@ export async function POST(request: Request) {
       data: { passwordHash: newPasswordHash },
     });
 
-    // Mark reset token as used (or delete it to prevent reuse)
+    // Mark reset token as used to prevent reuse
     await prisma.passwordResetToken.update({
       where: { id: tokenRecord.id },
       data: { used: true },
     });
 
-    return NextResponse.json({
+    // Build response and clear active admin_session cookie
+    const response = NextResponse.json({
       success: true,
       message: 'Your password has been reset successfully.',
     });
+
+    response.cookies.set('admin_session', '', {
+      httpOnly: true,
+      expires: new Date(0),
+      path: '/',
+    });
+
+    return response;
   } catch (error) {
     console.error('[RESET PASSWORD API ERROR]', error);
     return NextResponse.json(

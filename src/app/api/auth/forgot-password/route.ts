@@ -24,7 +24,22 @@ export async function POST(request: Request) {
 
     // To prevent email enumeration attacks, always respond with generic success message regardless of existence
     if (adminUser) {
-      // Delete any previous reset tokens for this email
+      // Rate-limiting check: check if a reset token was requested in the last 60 seconds
+      const recentToken = await prisma.passwordResetToken.findFirst({
+        where: { email: cleanEmail },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      const ONE_MINUTE_MS = 60 * 1000;
+      if (recentToken && (Date.now() - new Date(recentToken.createdAt).getTime() < ONE_MINUTE_MS)) {
+        // Return generic success to prevent email spamming while maintaining non-enumeration security
+        return NextResponse.json({
+          success: true,
+          message: 'If an administrator account exists with that email, a password reset link has been sent.',
+        });
+      }
+
+      // Invalidate/delete any previous unused reset tokens for this email
       await prisma.passwordResetToken.deleteMany({
         where: { email: cleanEmail },
       });
