@@ -95,6 +95,7 @@ export async function PUT(request: Request) {
     revalidatePath('/about');
     revalidatePath('/contact');
     revalidatePath('/dealer-enquiry');
+    revalidatePath('/admin/settings');
     revalidatePath('/api/settings');
 
     return NextResponse.json(updated);

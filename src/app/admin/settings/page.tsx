@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Building2,
   Phone,
@@ -18,6 +19,7 @@ import { Button } from '@/components/ui/Button';
 import { BusinessSettingsData, defaultSettings } from '@/lib/settings';
 
 export default function WebsiteSettingsPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState<BusinessSettingsData>(defaultSettings);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -75,6 +77,7 @@ export default function WebsiteSettingsPage() {
 
       setFormData(data);
       setSuccessMessage('Website Settings updated successfully! Public pages are now synchronized.');
+      router.refresh();
       setTimeout(() => setSuccessMessage(''), 4000);
     } catch (err) {
       console.error('Save settings error:', err);
