@@ -5,9 +5,9 @@ interface SendPasswordResetEmailParams {
   resetToken: string;
 }
 
-export async function sendPasswordResetEmail({ toEmail, resetToken }: SendPasswordResetEmailParams): Promise<{ success: boolean; error?: string }> {
+export async function sendPasswordResetEmail({ toEmail, resetToken }: SendPasswordResetEmailParams): Promise<{ success: boolean; id?: string; error?: string }> {
   const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.ADMIN_EMAIL_FROM || 'Mehak Sanitary Admin <onboarding@resend.dev>';
+  const rawFromEmail = process.env.ADMIN_EMAIL_FROM || 'Mehak Admin <onboarding@resend.dev>';
   
   const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL 
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` 
@@ -56,11 +56,18 @@ export async function sendPasswordResetEmail({ toEmail, resetToken }: SendPasswo
   `;
 
   if (!apiKey) {
-    console.warn('[EMAIL WARNING] RESEND_API_KEY environment variable is not configured. Reset token generated in DB, but email dispatch requires RESEND_API_KEY in Vercel.');
+    console.error('[EMAIL ERROR] RESEND_API_KEY environment variable is missing.');
     return { success: false, error: 'RESEND_API_KEY_MISSING' };
   }
 
   try {
+    console.log('[RESEND SENDING EMAIL]', {
+      to: toEmail,
+      from: rawFromEmail,
+      subject: 'Reset your Mehak Admin password',
+      resetUrl,
+    });
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -68,22 +75,39 @@ export async function sendPasswordResetEmail({ toEmail, resetToken }: SendPasswo
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: fromEmail,
+        from: rawFromEmail,
         to: [toEmail],
         subject: 'Reset your Mehak Admin password',
         html: htmlContent,
       }),
     });
 
+    const resData = await res.json().catch(() => ({}));
+
     if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      console.error('[EMAIL ERROR] Resend API error response:', errData);
-      return { success: false, error: errData.message || 'Resend API error' };
+      console.error('[RESEND API FAILED]', {
+        status: res.status,
+        statusText: res.statusText,
+        error: resData,
+        to: toEmail,
+        from: rawFromEmail,
+      });
+      return { 
+        success: false, 
+        error: resData.message || resData.name || `Resend API Error (HTTP ${res.status})` 
+      };
     }
 
-    return { success: true };
-  } catch (err) {
-    console.error('[EMAIL ERROR] Failed to send email via Resend:', err);
-    return { success: false, error: 'Network or Resend fetch error' };
+    console.log('[RESEND API SUCCESS]', {
+      id: resData.id,
+      to: toEmail,
+      from: rawFromEmail,
+      subject: 'Reset your Mehak Admin password',
+    });
+
+    return { success: true, id: resData.id };
+  } catch (err: any) {
+    console.error('[RESEND FETCH EXCEPTION]', err);
+    return { success: false, error: err?.message || 'Network error sending email via Resend' };
   }
 }
