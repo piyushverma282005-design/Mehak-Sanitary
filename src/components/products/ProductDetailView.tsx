@@ -7,7 +7,7 @@ import { Product } from '@/types';
 import { Button } from '../ui/Button';
 import { ProductImagePlaceholder } from '../ui/ProductImagePlaceholder';
 import { EnquiryModal } from '../ui/EnquiryModal';
-import { companyData } from '@/data/company';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import { ArrowLeft, PhoneCall, MessageSquare, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 export interface ProductDetailViewProps {
@@ -15,10 +15,11 @@ export interface ProductDetailViewProps {
 }
 
 export const ProductDetailView: React.FC<ProductDetailViewProps> = ({ product }) => {
+  const settings = useBusinessSettings();
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
   // Formatted WhatsApp link with pre-filled product inquiry message
-  const whatsappProductUrl = `${companyData.contact.whatsappUrl}?text=${encodeURIComponent(
+  const whatsappProductUrl = `https://wa.me/91${settings.whatsapp}?text=${encodeURIComponent(
     `Hello, I am interested in ${product.name}. Please share the details.`
   )}`;
 

@@ -7,9 +7,10 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, PhoneCall } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { EnquiryModal } from '../ui/EnquiryModal';
-import { companyData } from '@/data/company';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 
 export const Navbar: React.FC = () => {
+  const settings = useBusinessSettings();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
@@ -37,7 +38,7 @@ export const Navbar: React.FC = () => {
               <div className="relative h-12 w-12 rounded-xl bg-black overflow-hidden flex items-center justify-center border border-slate-800 shadow-xs group-hover:border-slate-700 transition-colors shrink-0">
                 <Image
                   src="/images/mehak-logo.png"
-                  alt="Mehak - Hari Har Industries"
+                  alt={`Mehak - ${settings.name}`}
                   width={48}
                   height={48}
                   priority
@@ -47,14 +48,14 @@ export const Navbar: React.FC = () => {
               <div className="flex flex-col">
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 font-sans">
-                    {companyData.brand}
+                    {settings.brand}
                   </span>
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest hidden xs:inline">
-                    by Hari Har
+                    by {settings.name}
                   </span>
                 </div>
                 <span className="text-[10px] sm:text-xs font-medium text-slate-500 tracking-wide">
-                  {companyData.slogan}
+                  {settings.tagline}
                 </span>
               </div>
             </Link>

@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 import { Send, MessageSquare } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { EnquiryModal } from '../ui/EnquiryModal';
-import { companyData } from '@/data/company';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 
 export const BusinessCTA: React.FC = () => {
+  const settings = useBusinessSettings();
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
   return (
@@ -25,7 +26,7 @@ export const BusinessCTA: React.FC = () => {
         </h2>
 
         <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
-          Connect with Mehak for product enquiries, dealer requirements and bulk orders.
+          Connect with {settings.brand} for product enquiries, dealer requirements and bulk orders.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
@@ -39,15 +40,17 @@ export const BusinessCTA: React.FC = () => {
             Send Enquiry
           </Button>
 
-          <Button
-            variant="whatsapp"
-            size="lg"
-            href={companyData.contact.whatsappUrl}
-            icon={<MessageSquare className="w-5 h-5" />}
-            className="w-full sm:w-auto"
-          >
-            WhatsApp Us (+91 {companyData.contact.whatsapp})
-          </Button>
+          {settings.whatsapp && (
+            <Button
+              variant="whatsapp"
+              size="lg"
+              href={`https://wa.me/91${settings.whatsapp}`}
+              icon={<MessageSquare className="w-5 h-5" />}
+              className="w-full sm:w-auto"
+            >
+              WhatsApp Us (+91 {settings.whatsapp})
+            </Button>
+          )}
         </div>
       </div>
 

@@ -5,9 +5,10 @@ import Image from 'next/image';
 import { ArrowRight, PhoneCall, ShieldCheck, Award, Layers } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { EnquiryModal } from '../ui/EnquiryModal';
-import { companyData } from '@/data/company';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 
 export const HeroSection: React.FC = () => {
+  const settings = useBusinessSettings();
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
   return (
@@ -25,25 +26,25 @@ export const HeroSection: React.FC = () => {
               <div className="relative w-5 h-5 rounded-md bg-black overflow-hidden flex items-center justify-center shrink-0">
                 <Image
                   src="/images/mehak-logo.png"
-                  alt="Mehak - Hari Har Industries"
+                  alt={`${settings.brand} - ${settings.name}`}
                   width={20}
                   height={20}
                   className="object-contain"
                 />
               </div>
-              <span className="font-semibold text-white">{companyData.name}</span>
+              <span className="font-semibold text-white">{settings.name}</span>
               <span className="w-1 h-1 rounded-full bg-slate-500" />
-              <span>Brand: {companyData.brand}</span>
+              <span>Brand: {settings.brand}</span>
             </div>
 
             {/* Main Headline */}
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
-              Complete Bathroom Solution
+              {settings.tagline}
             </h1>
 
             {/* Supporting text */}
             <p className="text-base sm:text-lg lg:text-xl text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-              {companyData.brand} by {companyData.name} delivers engineered sanitary hardware, PTMT polymer fittings, heavy brass valves, and stainless steel accessories designed for modern durability and effortless water flow.
+              {settings.brand} by {settings.name} delivers engineered sanitary hardware, PTMT polymer fittings, heavy brass valves, and stainless steel accessories designed for modern durability and effortless water flow.
             </p>
 
             {/* CTA Buttons */}

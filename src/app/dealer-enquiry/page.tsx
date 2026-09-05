@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { DealerEnquiryForm } from '@/components/forms/DealerEnquiryForm';
 import { FAQSection } from '@/components/shared/FAQSection';
 import { EnquiryModal } from '@/components/ui/EnquiryModal';
-import { companyData } from '@/data/company';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 import {
   HelpCircle,
   Building2,
@@ -18,9 +18,14 @@ import {
   Send,
   MessageSquare,
   Phone,
+  Store,
+  FileText,
+  ShoppingBag,
 } from 'lucide-react';
 
 export default function DealerEnquiryPage() {
+  const settings = useBusinessSettings();
+  const phoneNumbers = [settings.phonePrimary, settings.phoneSecondary, settings.phoneTertiary].filter(Boolean) as string[];
   const [modalCategory, setModalCategory] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -31,71 +36,66 @@ export default function DealerEnquiryPage() {
 
   const helpTypes = [
     {
-      title: 'Product Enquiry',
-      description: 'Inquire about specific fittings, material options, or catalog specs.',
-      icon: HelpCircle,
+      title: 'Become a Dealer',
+      description:
+        'Partner with Mehak for exclusive dealership opportunities, marketing collateral, and priority supply.',
+      icon: Store,
     },
     {
-      title: 'Dealer Enquiry',
-      description: 'Explore business opportunities for stocking Mehak sanitary hardware.',
-      icon: Building2,
-    },
-    {
-      title: 'Distributor Enquiry',
-      description: 'Connect regarding regional distribution channels and stock supply.',
+      title: 'Distributor Partnership',
+      description:
+        'Regional distribution rights for Hari Har Industries sanitary hardware products.',
       icon: Truck,
     },
     {
-      title: 'Bulk Requirement',
-      description: 'Submit requirements for commercial building projects or bulk hardware.',
-      icon: Boxes,
+      title: 'Bulk Commercial Supply',
+      description:
+        'Factory-direct bulk rates for real estate projects, hotels, and commercial developments.',
+      icon: Building2,
     },
     {
-      title: 'General Enquiry',
-      description: 'Ask general business, catalog, or contact questions.',
-      icon: MessageSquareText,
+      title: 'Request Trade Catalog',
+      description:
+        'Download or request physical product catalogue brochures with specifications.',
+      icon: FileText,
+    },
+    {
+      title: 'Retail / General Enquiry',
+      description:
+        'General customer product questions, store locations, or hardware assistance.',
+      icon: ShoppingBag,
     },
   ];
 
   return (
     <div className="bg-slate-50 min-h-screen">
-      {/* HERO SECTION */}
+      {/* HERO BANNER */}
       <section className="bg-slate-900 text-white py-16 sm:py-24 relative overflow-hidden">
         <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-slate-800/40 rounded-full blur-3xl pointer-events-none" />
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-          <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-slate-800 border border-slate-700">
-            <div className="relative w-6 h-6 rounded-md bg-black overflow-hidden flex items-center justify-center shrink-0">
-              <Image
-                src="/images/mehak-logo.png"
-                alt="Mehak Logo"
-                width={24}
-                height={24}
-                className="object-contain"
-              />
-            </div>
-            <span className="text-xs font-semibold text-slate-300">
-              Trade & Distribution Enquiries
-            </span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-300">
+            Official Trade Portal — {settings.name}
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight">
-            Become a Mehak Dealer
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
+            Dealer & Business Enquiries
           </h1>
 
-          <p className="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            Interested in dealing in Mehak sanitary hardware? Send us your business enquiry and our team can connect with you.
+          <p className="text-base sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+            Expand your business with {settings.brand} sanitary hardware. We supply retailers, stockists, distributors, and commercial building contractors across India.
           </p>
 
-          {/* Quick WhatsApp Banner in Hero */}
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button
-              variant="whatsapp"
-              size="md"
-              href={companyData.contact.whatsappUrl}
-              icon={<MessageSquare className="w-4 h-4" />}
-            >
-              Prefer WhatsApp? Chat with us on WhatsApp
-            </Button>
+            {settings.whatsapp && (
+              <Button
+                variant="whatsapp"
+                size="md"
+                href={`https://wa.me/91${settings.whatsapp}`}
+                icon={<MessageSquare className="w-4 h-4" />}
+              >
+                Prefer WhatsApp? Chat with us on WhatsApp
+              </Button>
+            )}
           </div>
         </div>
       </section>
@@ -149,7 +149,7 @@ export default function DealerEnquiryPage() {
               </div>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2">
-              {companyData.contact.phoneNumbers.map((phone, idx) => (
+              {phoneNumbers.map((phone, idx) => (
                 <a
                   key={idx}
                   href={`tel:${phone}`}
@@ -201,14 +201,16 @@ export default function DealerEnquiryPage() {
             >
               Send Bulk Enquiry
             </Button>
-            <Button
-              variant="whatsapp"
-              size="lg"
-              href={companyData.contact.whatsappUrl}
-              icon={<MessageSquare className="w-5 h-5" />}
-            >
-              Chat on WhatsApp (+91 {companyData.contact.whatsapp})
-            </Button>
+            {settings.whatsapp && (
+              <Button
+                variant="whatsapp"
+                size="lg"
+                href={`https://wa.me/91${settings.whatsapp}`}
+                icon={<MessageSquare className="w-5 h-5" />}
+              >
+                Chat on WhatsApp (+91 {settings.whatsapp})
+              </Button>
+            )}
           </div>
         </div>
       </section>

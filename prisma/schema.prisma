@@ -87,3 +87,29 @@ model PasswordResetToken {
 
   @@index([email])
 }
+
+model BusinessSettings {
+  id               String   @id @default("global")
+  name             String   @default("Hari Har Industries")
+  brand            String   @default("Mehak")
+  tagline          String   @default("Complete Bathroom Solution")
+  description      String   @default("Hari Har Industries manufactures and supplies a comprehensive range of sanitary hardware under the Mehak brand. Built around precision engineering and high-grade raw materials, Mehak caters to retailers, dealers, distributors, commercial contractors, and homeowners across India seeking durable, elegant, and efficient bathroom fittings.")
+  phonePrimary     String   @default("8307721917")
+  phoneSecondary   String?  @default("9354222883")
+  phoneTertiary    String?  @default("9518405643")
+  whatsapp         String   @default("8307721917")
+  email            String   @default("piyushverma282005@gmail.com")
+  emailSecondary   String?  
+  address          String   @default("Industrial Area, Sector 5")
+  city             String   @default("Faridabad")
+  state            String   @default("Haryana")
+  pincode          String   @default("121006")
+  country          String   @default("India")
+  googleMapsUrl    String?  @default("https://maps.google.com")
+  mapEmbedUrl      String?  
+  instagramUrl     String?  
+  facebookUrl      String?  
+  youtubeUrl       String?  
+  updatedAt        DateTime @updatedAt
+  createdAt        DateTime @default(now())
+}

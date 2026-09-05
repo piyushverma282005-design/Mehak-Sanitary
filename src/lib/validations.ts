@@ -41,3 +41,26 @@ export const categorySchema = z.object({
 export const updateEnquiryStatusSchema = z.object({
   status: z.enum(['NEW', 'CONTACTED', 'IN_PROGRESS', 'COMPLETED', 'ARCHIVED']),
 });
+
+export const businessSettingsSchema = z.object({
+  name: z.string().min(1, 'Business name is required'),
+  brand: z.string().min(1, 'Brand name is required'),
+  tagline: z.string().min(1, 'Tagline is required'),
+  description: z.string().min(1, 'Description is required'),
+  phonePrimary: z.string().min(8, 'Valid primary phone number is required'),
+  phoneSecondary: z.string().nullable().optional(),
+  phoneTertiary: z.string().nullable().optional(),
+  whatsapp: z.string().min(8, 'Valid WhatsApp number is required'),
+  email: z.string().email('Please enter a valid email address'),
+  emailSecondary: z.string().email('Please enter a valid secondary email address').nullable().optional().or(z.literal('')),
+  address: z.string().min(1, 'Address is required'),
+  city: z.string().min(1, 'City is required'),
+  state: z.string().min(1, 'State is required'),
+  pincode: z.string().min(1, 'Pincode is required'),
+  country: z.string().min(1, 'Country is required'),
+  googleMapsUrl: z.string().url('Invalid Google Maps URL').nullable().optional().or(z.literal('')),
+  mapEmbedUrl: z.string().nullable().optional(),
+  instagramUrl: z.string().url('Invalid Instagram URL').nullable().optional().or(z.literal('')),
+  facebookUrl: z.string().url('Invalid Facebook URL').nullable().optional().or(z.literal('')),
+  youtubeUrl: z.string().url('Invalid YouTube URL').nullable().optional().or(z.literal('')),
+});

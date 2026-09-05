@@ -1,11 +1,16 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Phone, Mail, MapPin, MessageSquare, ArrowUpRight } from 'lucide-react';
-import { companyData } from '@/data/company';
 import { categoriesData } from '@/data/categories';
+import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 
 export const Footer: React.FC = () => {
+  const settings = useBusinessSettings();
+  const phoneNumbers = [settings.phonePrimary, settings.phoneSecondary, settings.phoneTertiary].filter(Boolean) as string[];
+
   return (
     <footer className="bg-slate-900 text-slate-300 pt-16 pb-8 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -16,7 +21,7 @@ export const Footer: React.FC = () => {
               <div className="relative h-14 w-14 rounded-xl bg-black overflow-hidden flex items-center justify-center border border-slate-800 shadow-md shrink-0">
                 <Image
                   src="/images/mehak-logo.png"
-                  alt="Mehak - Hari Har Industries"
+                  alt={`Mehak - ${settings.name}`}
                   width={56}
                   height={56}
                   className="object-contain p-0.5"
@@ -24,18 +29,18 @@ export const Footer: React.FC = () => {
               </div>
               <div>
                 <span className="text-2xl font-black text-white tracking-tight block">
-                  {companyData.brand}
+                  {settings.brand}
                 </span>
                 <span className="text-xs text-slate-400 font-semibold uppercase tracking-widest block">
-                  by Hari Har Industries
+                  by {settings.name}
                 </span>
               </div>
             </div>
-            <p className="text-sm text-slate-400 leading-relaxed max-w-md">
-              {companyData.shortAbout}
+            <p className="text-sm text-slate-400 leading-relaxed max-w-md line-clamp-3">
+              {settings.description}
             </p>
             <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
-              {companyData.slogan}
+              {settings.tagline}
             </div>
           </div>
 
@@ -102,7 +107,7 @@ export const Footer: React.FC = () => {
               <li className="flex items-start gap-2.5">
                 <Phone className="w-4 h-4 text-slate-400 shrink-0 mt-1" />
                 <div className="flex flex-col space-y-1">
-                  {companyData.contact.phoneNumbers.map((phone, idx) => (
+                  {phoneNumbers.map((phone, idx) => (
                     <a
                       key={idx}
                       href={`tel:${phone}`}
@@ -115,33 +120,52 @@ export const Footer: React.FC = () => {
               </li>
 
               {/* Clickable WhatsApp */}
-              <li className="flex items-center gap-2.5">
-                <MessageSquare className="w-4 h-4 text-emerald-400 shrink-0" />
-                <a
-                  href={companyData.contact.whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-emerald-300 text-emerald-400 font-semibold transition-colors font-mono text-xs"
-                >
-                  WhatsApp: +91 {companyData.contact.whatsapp}
-                </a>
-              </li>
+              {settings.whatsapp && (
+                <li className="flex items-center gap-2.5">
+                  <MessageSquare className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <a
+                    href={`https://wa.me/91${settings.whatsapp}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-emerald-300 text-emerald-400 font-semibold transition-colors font-mono text-xs"
+                  >
+                    WhatsApp: +91 {settings.whatsapp}
+                  </a>
+                </li>
+              )}
 
               {/* Clickable Email */}
-              <li className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-slate-400 shrink-0" />
-                <a
-                  href={`mailto:${companyData.contact.email}`}
-                  className="hover:text-white transition-colors text-xs break-all"
-                >
-                  {companyData.contact.email}
-                </a>
-              </li>
+              {settings.email && (
+                <li className="flex items-center gap-2.5">
+                  <Mail className="w-4 h-4 text-slate-400 shrink-0" />
+                  <a
+                    href={`mailto:${settings.email}`}
+                    className="hover:text-white transition-colors text-xs break-all"
+                  >
+                    {settings.email}
+                  </a>
+                </li>
+              )}
 
-              {/* Unconfigured Address */}
+              {/* Address & Maps */}
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-                <span className="text-slate-400 text-xs">{companyData.contact.address}</span>
+                <div className="flex flex-col gap-1">
+                  <span className="text-slate-400 text-xs">
+                    {settings.address}, {settings.city}, {settings.state} - {settings.pincode}, {settings.country}
+                  </span>
+                  {settings.googleMapsUrl && (
+                    <a
+                      href={settings.googleMapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-400 hover:underline flex items-center gap-1"
+                    >
+                      <span>Open in Google Maps</span>
+                      <ArrowUpRight className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
               </li>
             </ul>
           </div>
@@ -150,7 +174,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar: Copyright */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <p>
-            © {new Date().getFullYear()} Hari Har Industries — Brand: Mehak. All rights reserved.
+            © {new Date().getFullYear()} {settings.name} — Brand: {settings.brand}. All rights reserved.
           </p>
           <div className="flex items-center space-x-4">
             <span className="hover:text-slate-200 transition-colors cursor-pointer inline-flex items-center gap-1">

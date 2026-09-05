@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { B2BCards } from '@/components/shared/B2BCards';
 import { FAQSection } from '@/components/shared/FAQSection';
 import { categoriesData } from '@/data/categories';
-import { companyData } from '@/data/company';
+import { getBusinessSettings } from '@/lib/settings';
 import { Layers, Headphones, CheckCircle2, ArrowRight } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -16,7 +16,8 @@ export const metadata: Metadata = {
     'Mehak is the sanitary hardware brand of Hari Har Industries, offering a range of bathroom and sanitary hardware products for everyday bathroom requirements.',
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const settings = await getBusinessSettings();
   const approachItems = [
     {
       title: 'Product Variety',
@@ -45,23 +46,23 @@ export default function AboutPage() {
             <div className="relative w-6 h-6 rounded-md bg-black overflow-hidden flex items-center justify-center shrink-0">
               <Image
                 src="/images/mehak-logo.png"
-                alt="Mehak Logo"
+                alt={`${settings.brand} Logo`}
                 width={24}
                 height={24}
                 className="object-contain"
               />
             </div>
             <span className="text-xs font-semibold text-slate-300">
-              {companyData.name} — Brand: {companyData.brand}
+              {settings.name} — Brand: {settings.brand}
             </span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight">
-            About Mehak
+            About {settings.brand}
           </h1>
 
           <p className="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            Mehak is the sanitary hardware brand of Hari Har Industries, offering a range of bathroom and sanitary hardware products for everyday bathroom requirements.
+            {settings.brand} is the sanitary hardware brand of {settings.name}, offering a range of bathroom and sanitary hardware products for everyday bathroom requirements.
           </p>
         </div>
       </section>

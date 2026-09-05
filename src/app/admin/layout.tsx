@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   Building2,
+  Settings,
 } from 'lucide-react';
 import { companyData } from '@/data/company';
 
@@ -82,6 +83,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Products', href: '/admin/products', icon: Package },
     { name: 'Categories', href: '/admin/categories', icon: FolderTree },
     { name: 'Customer Enquiries', href: '/admin/enquiries', icon: Inbox },
+    { name: 'Website Settings', href: '/admin/settings', icon: Settings },
   ];
 
   return (
