@@ -5,13 +5,16 @@ import { getAdminSession } from '@/lib/auth';
 import { businessSettingsSchema } from '@/lib/validations';
 import { getBusinessSettings } from '@/lib/settings';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Public GET website settings
 export async function GET() {
   try {
     const settings = await getBusinessSettings();
     return NextResponse.json(settings, {
       headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
       },
     });
   } catch (error) {

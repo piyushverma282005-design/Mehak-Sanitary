@@ -87,7 +87,7 @@ export const ContactPreview: React.FC = () => {
             </div>
             <h3 className="text-base font-bold text-slate-900 mb-2">Business Address</h3>
             <div className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1.5 rounded mb-3">
-              {settings.address}, {settings.city}, {settings.state} - {settings.pincode}
+              {settings.address}, {settings.city}, {settings.state} - {settings.pincode}, {settings.country}
             </div>
             {settings.googleMapsUrl && (
               <a
