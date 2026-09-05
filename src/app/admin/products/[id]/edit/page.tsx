@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Save, Plus, Trash2, RefreshCw, Image as ImageIcon, X } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, RefreshCw, Image as ImageIcon, X, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 export default function EditProductPage() {
@@ -294,24 +294,12 @@ export default function EditProductPage() {
           {/* Image Upload Area */}
           <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 space-y-4">
             <label className="block text-xs font-semibold text-slate-700">
-              Product Image Upload
+              Product Image
             </label>
-            
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/avif"
-                onChange={handleImageUpload}
-                disabled={uploading}
-                className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-900 file:text-white cursor-pointer"
-              />
-              {uploading && <span className="text-xs font-semibold text-slate-600 animate-pulse">Uploading and processing photo...</span>}
-            </div>
 
-            {/* Visual Photo Preview Thumbnail */}
-            {image && (
-              <div className="pt-2 flex items-center gap-4 border-t border-slate-200">
-                <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-slate-300 bg-white shadow-xs">
+            {image ? (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="relative w-28 h-28 rounded-xl overflow-hidden border border-slate-300 bg-white shadow-xs shrink-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={image}
@@ -319,18 +307,50 @@ export default function EditProductPage() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <span className="text-xs font-bold text-emerald-700 block flex items-center gap-1">
-                    <ImageIcon className="w-3.5 h-3.5" /> Product Photo Active
+                    <ImageIcon className="w-4 h-4 text-emerald-600" /> Active Product Photo
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setImage(null)}
-                    className="inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-700 font-semibold underline cursor-pointer"
-                  >
-                    <X className="w-3 h-3" /> Remove Photo
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 text-xs font-semibold cursor-pointer transition-colors">
+                      <Upload className="w-3.5 h-3.5 text-slate-300" />
+                      <span>{uploading ? 'Uploading...' : 'Change Image'}</span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/avif"
+                        onChange={handleImageUpload}
+                        disabled={uploading}
+                        className="hidden"
+                      />
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={() => setImage(null)}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 text-xs font-semibold cursor-pointer transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>Remove Photo</span>
+                    </button>
+                  </div>
                 </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold cursor-pointer transition-colors shadow-2xs">
+                  <Upload className="w-4 h-4 text-slate-300" />
+                  <span>{uploading ? 'Uploading & Processing Image...' : 'Upload Image'}</span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/avif"
+                    onChange={handleImageUpload}
+                    disabled={uploading}
+                    className="hidden"
+                  />
+                </label>
+                <p className="text-[11px] text-slate-500">
+                  Supported formats: JPEG, PNG, WEBP, AVIF (Max 5MB). Photo will be displayed on website.
+                </p>
               </div>
             )}
           </div>
