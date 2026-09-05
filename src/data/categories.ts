@@ -7,7 +7,7 @@ export const categoriesData: Category[] = [
     slug: 'health-faucets',
     shortDescription: 'Ergonomic hand-held health faucet spray sets with pressure hoses and wall hooks.',
     description: 'Designed for effortless hygiene control, featuring smooth trigger response and anti-clog spray nozzles suitable for all water pressures.',
-    imageUrl: null,
+    imageUrl: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80',
     featured: true,
   },
   {
@@ -16,7 +16,7 @@ export const categoriesData: Category[] = [
     slug: 'waste-couplings',
     shortDescription: 'Precision-machined waste couplings for wash basins and kitchen sinks.',
     description: 'Available in heavy brass and stainless steel constructions with leak-proof seals and smooth pop-up or flip top drainage valves.',
-    imageUrl: null,
+    imageUrl: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=800&q=80',
     featured: true,
   },
   {
@@ -25,7 +25,7 @@ export const categoriesData: Category[] = [
     slug: 'floor-jali',
     shortDescription: 'Drainage floor jalis with anti-foul trap systems and cockroach repellency features.',
     description: 'Stainless steel and PTMT floor drains engineered for efficient water evacuation, easy cleaning, and odor control.',
-    imageUrl: null,
+    imageUrl: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80',
     featured: true,
   },
   {
@@ -34,7 +34,7 @@ export const categoriesData: Category[] = [
     slug: 'sink-couplings',
     shortDescription: 'Heavy-duty sink strainers and waste couplings for commercial and domestic sinks.',
     description: 'High-drainage capacity sink couplings engineered with removable basket strainers and corrosion-resistant body construction.',
-    imageUrl: null,
+    imageUrl: 'https://images.unsplash.com/photo-1585909692484-60c0429712a1?auto=format&fit=crop&w=800&q=80',
     featured: true,
   },
   {
@@ -43,7 +43,7 @@ export const categoriesData: Category[] = [
     slug: 'jet-sprays',
     shortDescription: 'Toilet seat jet sprays designed for targeted water flow and easy mounting.',
     description: 'High-durability jet spray units built with flexible brass inserts and smooth stream dispersion.',
-    imageUrl: null,
+    imageUrl: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=800&q=80',
     featured: true,
   },
   {
@@ -52,7 +52,7 @@ export const categoriesData: Category[] = [
     slug: 'waste-pipes',
     shortDescription: 'Flexible and rigid waste outlet pipes for wash basins, sinks, and washing machines.',
     description: 'High-grade polymer waste pipes crafted for kink resistance, leak-tight connections, and long operational lifespan.',
-    imageUrl: null,
+    imageUrl: 'https://images.unsplash.com/photo-1507652313519-d4e9174996dd?auto=format&fit=crop&w=800&q=80',
     featured: true,
   },
   {
@@ -61,7 +61,7 @@ export const categoriesData: Category[] = [
     slug: 'bathroom-accessories',
     shortDescription: 'Towel rails, soap dishes, robe hooks, and shelf racks for modern interiors.',
     description: 'Coordinated bathroom accessories built with high-grade stainless steel and brass for durable wall mounting.',
-    imageUrl: null,
+    imageUrl: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=800&q=80',
     featured: true,
   },
   {
@@ -70,7 +70,7 @@ export const categoriesData: Category[] = [
     slug: 'other-sanitary-hardware',
     shortDescription: 'Specialized plumbing connectors, extension nipples, valves, and hardware fittings.',
     description: 'A comprehensive assortment of essential plumbing hardware engineered for tight tolerances and dependable installation.',
-    imageUrl: null,
+    imageUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
     featured: true,
   },
 ];

@@ -1,8 +1,6 @@
 import { Product } from '@/types';
 
 // Centralized product catalogue dataset for Mehak by Hari Har Industries.
-// Designed for seamless API/Database integration in PART 4.
-// Real technical specifications and photography can be populated via data edits or admin portal.
 
 export const productsData: Product[] = [
   {
@@ -14,7 +12,7 @@ export const productsData: Product[] = [
     material: 'PTMT / Heavy Brass Body Options',
     shortDescription: 'Ergonomic hand-held health faucet spray with flexible pressure hose and wall hook.',
     description: 'The Mehak Health Faucet spray unit delivers soft aerated water control for modern bathrooms. Engineered with anti-clog spray holes, durable inner valve mechanisms, and a comfortable trigger handle for smooth daily operation.',
-    image: null, // Triggers neutral ProductImagePlaceholder
+    image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80',
     gallery: [],
     specifications: [
       { label: 'Category', value: 'Health Faucets' },
@@ -33,7 +31,7 @@ export const productsData: Product[] = [
     material: 'Stainless Steel / Heavy Brass',
     shortDescription: 'Precision-machined waste coupling for wash basins and vanity counters.',
     description: 'Mehak Waste Couplings ensure leak-proof drainage for wash basins. Features precision threading, durable rubber seals, and corrosion-resistant surface finish for standard basin outlets.',
-    image: null,
+    image: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=800&q=80',
     gallery: [],
     specifications: [
       { label: 'Category', value: 'Waste Couplings' },
@@ -52,7 +50,7 @@ export const productsData: Product[] = [
     material: 'Stainless Steel / PTMT Polymer',
     shortDescription: 'Heavy-duty floor drain jali with anti-foul trap and insect barrier.',
     description: 'Designed for bathroom and balcony water evacuation, the Mehak Floor Jali prevents hair blockage, foul odors, and drain pests while providing clean aesthetic integration with floor tiles.',
-    image: null,
+    image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80',
     gallery: [],
     specifications: [
       { label: 'Category', value: 'Jali / Floor Jali' },
@@ -71,7 +69,7 @@ export const productsData: Product[] = [
     material: 'Stainless Steel & Polymer',
     shortDescription: 'High-flow kitchen sink waste coupling with removable basket strainer.',
     description: 'Engineered for commercial and domestic kitchen sinks, Mehak Sink Couplings facilitate fast water evacuation while trapping food waste particles to prevent plumbing clogs.',
-    image: null,
+    image: 'https://images.unsplash.com/photo-1585909692484-60c0429712a1?auto=format&fit=crop&w=800&q=80',
     gallery: [],
     specifications: [
       { label: 'Category', value: 'Sink Couplings' },
@@ -90,7 +88,7 @@ export const productsData: Product[] = [
     material: 'Reinforced Polymer / Brass Nut',
     shortDescription: 'Precision toilet seat jet spray unit for targeted water flow.',
     description: 'Mehak Jet Spray assemblies offer reliable water pressure dispersion for commodes. Built for easy mounting under toilet seats with flexible connecting tubes and drip-free seals.',
-    image: null,
+    image: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=800&q=80',
     gallery: [],
     specifications: [
       { label: 'Category', value: 'Jet Sprays' },
@@ -109,7 +107,7 @@ export const productsData: Product[] = [
     material: 'Flexible Heavy Polymer',
     shortDescription: 'Flexible expandable waste outlet pipe for wash basins and sinks.',
     description: 'Mehak Waste Pipes are manufactured using high-grade flexible polymer compounds that resist cracking, hot water thermal expansion, and kinking during installation.',
-    image: null,
+    image: 'https://images.unsplash.com/photo-1507652313519-d4e9174996dd?auto=format&fit=crop&w=800&q=80',
     gallery: [],
     specifications: [
       { label: 'Category', value: 'Waste Pipes' },
@@ -128,7 +126,7 @@ export const productsData: Product[] = [
     material: 'Stainless Steel / Alloy Finish',
     shortDescription: 'Complete bath accessories including towel rod, soap dish, and robe hooks.',
     description: 'Modernize bath spaces with coordinated Mehak hardware accessories crafted for sturdy wall attachment, rust resistance, and daily utility.',
-    image: null,
+    image: 'https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=800&q=80',
     gallery: [],
     specifications: [
       { label: 'Category', value: 'Bathroom Accessories' },
@@ -147,7 +145,7 @@ export const productsData: Product[] = [
     material: 'High-Purity Brass Alloy',
     shortDescription: 'Precision-threaded brass extension nipple fitting for sanitary pipe extensions.',
     description: 'Heavy brass extension nipples designed for secure thread engagement, leak-proof jointing, and high-pressure plumbing installations.',
-    image: null,
+    image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
     gallery: [],
     specifications: [
       { label: 'Category', value: 'Other Sanitary Hardware' },
