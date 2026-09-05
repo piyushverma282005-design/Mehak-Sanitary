@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Save, Upload, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 export default function AddProductPage() {
@@ -144,12 +144,12 @@ export default function AddProductPage() {
             Add New Product
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Create a new sanitary hardware product entry in the PostgreSQL database.
+            Create a new sanitary hardware product entry in the database.
           </p>
         </div>
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl">
+          <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl font-medium">
             {error}
           </div>
         )}
@@ -248,35 +248,50 @@ export default function AddProductPage() {
           </div>
 
           {/* Image Upload Area */}
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+          <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 space-y-4">
             <label className="block text-xs font-semibold text-slate-700">
-              Main Product Image Upload
+              Main Product Photo Upload
             </label>
-            <div className="flex items-center gap-4">
+            
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/avif"
                 onChange={handleImageUpload}
                 disabled={uploading}
-                className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-900 file:text-white hover:file:bg-slate-800"
+                className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer"
               />
-              {uploading && <span className="text-xs text-slate-500">Uploading...</span>}
+              {uploading && <span className="text-xs font-semibold text-slate-600 animate-pulse">Uploading and processing photo...</span>}
             </div>
 
+            {/* Visual Photo Preview Thumbnail */}
             {image && (
-              <div className="text-xs text-emerald-700 font-semibold flex items-center gap-2">
-                <span>Image Uploaded: {image}</span>
-                <button
-                  type="button"
-                  onClick={() => setImage(null)}
-                  className="text-red-600 underline text-xs"
-                >
-                  Remove
-                </button>
+              <div className="pt-2 flex items-center gap-4 border-t border-slate-200">
+                <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-slate-300 bg-white shadow-xs">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={image}
+                    alt="Uploaded Product Preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-xs font-bold text-emerald-700 block flex items-center gap-1">
+                    <ImageIcon className="w-3.5 h-3.5" /> Photo Attached Successfully
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setImage(null)}
+                    className="inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-700 font-semibold underline cursor-pointer"
+                  >
+                    <X className="w-3 h-3" /> Remove Photo
+                  </button>
+                </div>
               </div>
             )}
+
             <p className="text-[11px] text-slate-500">
-              If no image is uploaded, the existing neutral placeholder icon will be used.
+              Supported formats: JPEG, PNG, WEBP, AVIF (Max 5MB). Image is securely saved to database.
             </p>
           </div>
 
@@ -354,7 +369,7 @@ export default function AddProductPage() {
               variant="metallic"
               size="md"
               type="submit"
-              disabled={loading}
+              disabled={loading || uploading}
               icon={<Save className="w-4 h-4" />}
             >
               {loading ? 'Saving...' : 'Save Product to Database'}

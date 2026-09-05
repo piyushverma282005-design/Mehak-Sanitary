@@ -14,6 +14,7 @@ interface AdminProduct {
   featured: boolean;
   available: boolean;
   material?: string;
+  image?: string | null;
   updatedAt: string;
 }
 
@@ -139,7 +140,7 @@ export default function AdminProductsPage() {
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-3.5">Product Name</th>
+                  <th className="px-6 py-3.5">Product</th>
                   <th className="px-6 py-3.5">Category</th>
                   <th className="px-6 py-3.5">Featured</th>
                   <th className="px-6 py-3.5">Status</th>
@@ -150,7 +151,23 @@ export default function AdminProductsPage() {
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {filteredProducts.map((p) => (
                   <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="px-6 py-4 font-bold text-slate-900">{p.name}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        {p.image ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={p.image}
+                            alt={p.name}
+                            className="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0 bg-slate-50"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-400 shrink-0">
+                            NO IMG
+                          </div>
+                        )}
+                        <span className="font-bold text-slate-900">{p.name}</span>
+                      </div>
+                    </td>
                     <td className="px-6 py-4 text-xs font-semibold text-slate-600">{p.categoryName}</td>
                     <td className="px-6 py-4">
                       {p.featured ? (
