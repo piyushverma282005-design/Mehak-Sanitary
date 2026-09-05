@@ -1,0 +1,367 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft, Save, Upload, Plus, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+
+export default function AddProductPage() {
+  const router = useRouter();
+  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [uploading, setUploading] = useState(false);
+
+  // Form State
+  const [name, setName] = useState('');
+  const [slug, setSlug] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [shortDescription, setShortDescription] = useState('');
+  const [description, setDescription] = useState('');
+  const [material, setMaterial] = useState('');
+  const [featured, setFeatured] = useState(false);
+  const [available, setAvailable] = useState(true);
+  const [image, setImage] = useState<string | null>(null);
+  const [specifications, setSpecifications] = useState<Array<{ label: string; value: string }>>([]);
+
+  useEffect(() => {
+    fetch('/api/categories')
+      .then((res) => res.json())
+      .then((data) => {
+        setCategories(data);
+        if (data.length > 0) setCategoryId(data[0].id);
+      })
+      .catch((err) => console.error('Category fetch error:', err));
+  }, []);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setError('');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Failed to upload image.');
+        setUploading(false);
+        return;
+      }
+
+      setImage(data.url);
+    } catch (err) {
+      console.error('Upload error:', err);
+      setError('Connection error during image upload.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleAddSpec = () => {
+    setSpecifications([...specifications, { label: '', value: '' }]);
+  };
+
+  const handleSpecChange = (index: number, key: 'label' | 'value', val: string) => {
+    const updated = [...specifications];
+    updated[index][key] = val;
+    setSpecifications(updated);
+  };
+
+  const handleRemoveSpec = (index: number) => {
+    setSpecifications(specifications.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !categoryId || !description.trim()) {
+      setError('Product Name, Category, and Description are required.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          slug: slug.trim() || undefined,
+          categoryId,
+          shortDescription,
+          description,
+          material,
+          featured,
+          available,
+          image,
+          specifications: specifications.filter((s) => s.label.trim() && s.value.trim()),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Failed to create product.');
+        setLoading(false);
+        return;
+      }
+
+      router.push('/admin/products');
+      router.refresh();
+    } catch (err) {
+      console.error('Create product error:', err);
+      setError('Connection error during product creation.');
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Top Header */}
+      <div className="flex items-center justify-between">
+        <Link
+          href="/admin/products"
+          className="inline-flex items-center text-xs font-semibold text-slate-600 hover:text-slate-900 gap-1.5"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Products List
+        </Link>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-2xs">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+            Add New Product
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">
+            Create a new sanitary hardware product entry in the PostgreSQL database.
+          </p>
+        </div>
+
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Grid 1: Name & Category */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Product Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Brass Angle Valve"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Category <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-slate-900 outline-none font-medium"
+              >
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Grid 2: Slug & Material */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Custom URL Slug (Optional)
+              </label>
+              <input
+                type="text"
+                placeholder="brass-angle-valve"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none font-mono text-xs"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Material / Finish (Optional)
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Heavy Brass Alloy / 304 SS"
+                value={material}
+                onChange={(e) => setMaterial(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Short Description */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Short Description
+            </label>
+            <input
+              type="text"
+              placeholder="Brief 1-sentence product summary"
+              value={shortDescription}
+              onChange={(e) => setShortDescription(e.target.value)}
+              className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none"
+            />
+          </div>
+
+          {/* Full Description */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Full Description <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              rows={4}
+              required
+              placeholder="Detailed product features and applications..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none resize-none"
+            />
+          </div>
+
+          {/* Image Upload Area */}
+          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+            <label className="block text-xs font-semibold text-slate-700">
+              Main Product Image Upload
+            </label>
+            <div className="flex items-center gap-4">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/avif"
+                onChange={handleImageUpload}
+                disabled={uploading}
+                className="text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-900 file:text-white hover:file:bg-slate-800"
+              />
+              {uploading && <span className="text-xs text-slate-500">Uploading...</span>}
+            </div>
+
+            {image && (
+              <div className="text-xs text-emerald-700 font-semibold flex items-center gap-2">
+                <span>Image Uploaded: {image}</span>
+                <button
+                  type="button"
+                  onClick={() => setImage(null)}
+                  className="text-red-600 underline text-xs"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+            <p className="text-[11px] text-slate-500">
+              If no image is uploaded, the existing neutral placeholder icon will be used.
+            </p>
+          </div>
+
+          {/* Specifications List */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-slate-700">
+                Product Specifications (Optional)
+              </label>
+              <button
+                type="button"
+                onClick={handleAddSpec}
+                className="inline-flex items-center gap-1 text-xs font-bold text-slate-900 hover:underline"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Spec Line
+              </button>
+            </div>
+
+            {specifications.map((spec, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Label (e.g. Thread Size)"
+                  value={spec.label}
+                  onChange={(e) => handleSpecChange(idx, 'label', e.target.value)}
+                  className="w-1/2 px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none"
+                />
+                <input
+                  type="text"
+                  placeholder="Value (e.g. 1/2 Inch)"
+                  value={spec.value}
+                  onChange={(e) => handleSpecChange(idx, 'value', e.target.value)}
+                  className="w-1/2 px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveSpec(idx)}
+                  className="p-1.5 text-red-600 hover:bg-red-50 rounded-md"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Toggles: Featured & Available */}
+          <div className="flex items-center gap-6 pt-2">
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
+              <input
+                type="checkbox"
+                checked={featured}
+                onChange={(e) => setFeatured(e.target.checked)}
+                className="w-4 h-4 rounded text-slate-900 focus:ring-slate-900"
+              />
+              <span>Mark as Featured Product</span>
+            </label>
+
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700">
+              <input
+                type="checkbox"
+                checked={available}
+                onChange={(e) => setAvailable(e.target.checked)}
+                className="w-4 h-4 rounded text-slate-900 focus:ring-slate-900"
+              />
+              <span>Active in Public Catalogue</span>
+            </label>
+          </div>
+
+          {/* Actions */}
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+            <Button variant="ghost" size="md" href="/admin/products">
+              Cancel
+            </Button>
+            <Button
+              variant="metallic"
+              size="md"
+              type="submit"
+              disabled={loading}
+              icon={<Save className="w-4 h-4" />}
+            >
+              {loading ? 'Saving...' : 'Save Product to Database'}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

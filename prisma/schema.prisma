@@ -1,0 +1,69 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model AdminUser {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id               String   @id @default(uuid())
+  name             String
+  slug             String   @unique
+  shortDescription String?
+  description      String
+  categoryId       String
+  category         Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  material         String?
+  featured         Boolean  @default(false)
+  available        Boolean  @default(true)
+  image            String?
+  gallery          String[] @default([])
+  specifications   Json?    @default("[]")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+enum EnquiryStatus {
+  NEW
+  CONTACTED
+  IN_PROGRESS
+  COMPLETED
+  ARCHIVED
+}
+
+model Enquiry {
+  id           String        @id @default(uuid())
+  name         String
+  phone        String
+  email        String?
+  city         String?
+  companyName  String?
+  businessType String?
+  enquiryType  String?
+  product      String?
+  quantity     String?
+  message      String
+  status       EnquiryStatus @default(NEW)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
