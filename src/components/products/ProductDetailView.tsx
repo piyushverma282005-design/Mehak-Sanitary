@@ -49,7 +49,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({ product })
                       alt={`Mehak ${product.name}`}
                       fill
                       priority
-                      unoptimized={product.image.startsWith('data:')}
+                      unoptimized={product.image.startsWith('data:') || product.image.startsWith('http')}
                       className="object-cover object-center"
                     />
                   </div>
