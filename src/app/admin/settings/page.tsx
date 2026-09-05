@@ -103,16 +103,6 @@ export default function WebsiteSettingsPage() {
             Dynamically update brand identity, contact numbers, WhatsApp CTAs, address, and social links.
           </p>
         </div>
-
-        <Button
-          variant="metallic"
-          size="md"
-          onClick={handleSubmit}
-          disabled={saving}
-          icon={saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-        >
-          {saving ? 'Saving...' : 'Save Settings'}
-        </Button>
       </div>
 
       {/* Notifications */}
