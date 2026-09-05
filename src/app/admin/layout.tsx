@@ -24,10 +24,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [adminUser, setAdminUser] = useState<{ id: string; email: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const isLoginPage = pathname === '/admin/login';
+  const isPublicAdminPage =
+    pathname === '/admin/login' ||
+    pathname === '/admin/forgot-password' ||
+    pathname === '/admin/reset-password';
 
   useEffect(() => {
-    if (isLoginPage) {
+    if (isPublicAdminPage) {
       setLoading(false);
       return;
     }
@@ -51,9 +54,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         router.push('/admin/login');
         setLoading(false);
       });
-  }, [pathname, isLoginPage, router]);
+  }, [pathname, isPublicAdminPage, router]);
 
-  if (isLoginPage) {
+  if (isPublicAdminPage) {
     return <>{children}</>;
   }
 
