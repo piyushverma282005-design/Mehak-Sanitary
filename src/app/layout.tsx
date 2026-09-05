@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { getBusinessSettings } from '@/lib/settings';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -57,34 +58,36 @@ export const metadata: Metadata = {
   },
 };
 
-const jsonLdOrg = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'Hari Har Industries',
-  brand: {
-    '@type': 'Brand',
-    name: 'Mehak',
-    slogan: 'Complete Bathroom Solution',
-  },
-  url: siteUrl,
-  logo: `${siteUrl}/images/mehak-logo.png`,
-  email: 'piyushverma282005@gmail.com',
-  telephone: ['+918307721917', '+919354222883', '+919518405643'],
-  contactPoint: [
-    {
-      '@type': 'ContactPoint',
-      telephone: '+91-8307721917',
-      contactType: 'sales',
-      availableLanguage: ['English', 'Hindi'],
-    },
-  ],
-};
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await getBusinessSettings();
+
+  const jsonLdOrg = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: settings.name,
+    brand: {
+      '@type': 'Brand',
+      name: settings.brand,
+      slogan: settings.tagline,
+    },
+    url: siteUrl,
+    logo: `${siteUrl}/images/mehak-logo.png`,
+    email: settings.email,
+    telephone: [settings.phonePrimary, settings.phoneSecondary, settings.phoneTertiary].filter(Boolean) as string[],
+    contactPoint: [
+      {
+        '@type': 'ContactPoint',
+        telephone: settings.phonePrimary ? `+91-${settings.phonePrimary}` : '+91-8307721917',
+        contactType: 'sales',
+        availableLanguage: ['English', 'Hindi'],
+      },
+    ],
+  };
+
   return (
     <html
       lang="en"
