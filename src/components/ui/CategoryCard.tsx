@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
@@ -11,16 +13,20 @@ export interface CategoryCardProps {
 }
 
 export const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
+  const [imgError, setImgError] = useState(false);
+
   return (
     <Card className="group flex flex-col h-full bg-white">
       {/* Easily swappable image container or neutral category placeholder */}
       <div className="relative h-52 sm:h-60 w-full overflow-hidden bg-slate-100">
-        {category.imageUrl ? (
+        {category.imageUrl && !imgError ? (
           <>
             <Image
               src={category.imageUrl}
               alt={`Mehak ${category.name} Sanitary Hardware`}
               fill
+              unoptimized={true}
+              onError={() => setImgError(true)}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
             />
@@ -29,13 +35,13 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
         ) : (
           <ProductImagePlaceholder
             productName={category.name}
-            categoryName="Hardware Category"
+            categoryName={category.name}
             aspectRatio="portrait"
             className="group-hover:scale-102 transition-transform duration-300"
           />
         )}
         <span className="absolute bottom-3 left-3 bg-slate-900/80 text-white text-xs font-medium px-2.5 py-1 rounded-md backdrop-blur-xs z-10">
-          Hardware Category
+          {category.name}
         </span>
       </div>
 

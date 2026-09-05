@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/types';
@@ -13,11 +15,13 @@ export interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onEnquire }) => {
+  const [imgError, setImgError] = useState(false);
+
   return (
     <Card className="group flex flex-col h-full bg-white border border-slate-200/90 hover:border-slate-300 transition-all duration-300">
       {/* Product Image Area / Neutral Placeholder */}
       <Link href={`/products/${product.slug}`} className="relative block w-full overflow-hidden">
-        {product.image ? (
+        {product.image && !imgError ? (
           <div className="relative h-52 sm:h-60 w-full overflow-hidden bg-slate-100">
             <Image
               src={product.image}
@@ -25,6 +29,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onEnquire }) 
               fill
               loading="lazy"
               unoptimized={true}
+              onError={() => setImgError(true)}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
             />
