@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Lock, ArrowRight, ShieldAlert, KeyRound, RefreshCw } from 'lucide-react';
+import { Lock, ArrowRight, ShieldAlert, KeyRound, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 function ResetPasswordForm() {
@@ -19,6 +19,7 @@ function ResetPasswordForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetDone, setResetDone] = useState(false);
 
   useEffect(() => {
     async function verifyToken() {
@@ -107,14 +108,32 @@ function ResetPasswordForm() {
         return;
       }
 
-      // Successful password reset -> Redirect to login page with success notification query parameter
-      router.push('/admin/login?reset=success');
+      setResetDone(true);
     } catch (err) {
       console.error('Reset password submit error:', err);
       setError('Connection error. Please try again.');
       setLoading(false);
     }
   };
+
+  if (resetDone) {
+    return (
+      <div className="w-full max-w-md bg-slate-800/80 backdrop-blur-md rounded-2xl border border-slate-700/80 shadow-2xl p-8 text-center space-y-6 relative z-10">
+        <div className="mx-auto w-14 h-14 rounded-2xl bg-emerald-950/80 border border-emerald-700/80 flex items-center justify-center">
+          <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black text-white tracking-tight">Password Reset Successfully</h2>
+          <p className="text-xs text-slate-300 leading-relaxed">
+            Your admin password has been updated. You can now sign in with your new password.
+          </p>
+        </div>
+        <Button variant="metallic" size="lg" href="/admin/login?reset=success" fullWidth icon={<ArrowRight className="w-4 h-4" />}>
+          Go to Admin Login
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-md bg-slate-800/80 backdrop-blur-md rounded-2xl border border-slate-700/80 shadow-2xl p-8 space-y-6 relative z-10">
@@ -124,9 +143,9 @@ function ResetPasswordForm() {
           <KeyRound className="w-7 h-7 text-slate-200" />
         </div>
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight">Set New Password</h1>
+          <h1 className="text-2xl font-black text-white tracking-tight">Reset Password</h1>
           <p className="text-xs text-slate-400 font-semibold mt-1">
-            Choose a strong new password for your admin account
+            Create a new password for your Mehak admin account
           </p>
         </div>
       </div>
@@ -142,7 +161,7 @@ function ResetPasswordForm() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-xs font-semibold text-slate-300 mb-1">
-            New Password (Min 8 characters)
+            New Password
           </label>
           <div className="relative">
             <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
@@ -150,7 +169,7 @@ function ResetPasswordForm() {
               type="password"
               required
               minLength={8}
-              placeholder="••••••••••••"
+              placeholder="Enter new password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               className="w-full pl-10 pr-3.5 py-2.5 text-sm bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none"
@@ -160,7 +179,7 @@ function ResetPasswordForm() {
 
         <div>
           <label className="block text-xs font-semibold text-slate-300 mb-1">
-            Confirm New Password
+            Confirm Password
           </label>
           <div className="relative">
             <Lock className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
@@ -168,7 +187,7 @@ function ResetPasswordForm() {
               type="password"
               required
               minLength={8}
-              placeholder="••••••••••••"
+              placeholder="Confirm new password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full pl-10 pr-3.5 py-2.5 text-sm bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none"
@@ -184,7 +203,7 @@ function ResetPasswordForm() {
           fullWidth
           icon={<ArrowRight className="w-4 h-4" />}
         >
-          {loading ? 'Updating Password...' : 'Reset & Save Password'}
+          {loading ? 'Resetting...' : 'Reset Password'}
         </Button>
       </form>
     </div>

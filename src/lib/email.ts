@@ -25,39 +25,30 @@ export async function sendPasswordResetEmail({ toEmail, resetToken }: SendPasswo
       <head>
         <meta charset="utf-8">
         <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 40px 20px; }
-          .container { max-width: 560px; margin: 0 auto; background-color: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 32px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
-          .header { text-align: center; padding-bottom: 24px; border-bottom: 1px solid #334155; }
-          .brand { font-size: 22px; font-weight: 900; color: #ffffff; letter-spacing: -0.5px; margin: 0; }
-          .subtitle { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
-          .content { padding: 24px 0; font-size: 14px; line-height: 1.6; color: #cbd5e1; }
-          .btn-container { text-align: center; margin: 28px 0; }
-          .btn { display: inline-block; background-color: #ffffff; color: #0f172a; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1); }
-          .notice { font-size: 12px; color: #64748b; margin-top: 20px; word-break: break-all; }
-          .footer { text-align: center; padding-top: 20px; border-top: 1px solid #334155; font-size: 11px; color: #64748b; }
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 40px 20px; }
+          .container { max-width: 520px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 36px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+          .title { font-size: 20px; font-weight: 800; color: #0f172a; margin-top: 0; margin-bottom: 20px; text-align: left; }
+          .text { font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 20px; }
+          .btn-container { text-align: left; margin: 28px 0; }
+          .btn { display: inline-block; background-color: #0f172a; color: #ffffff !important; font-weight: 700; font-size: 14px; padding: 12px 28px; border-radius: 10px; text-decoration: none; }
+          .subtext { font-size: 13px; color: #64748b; margin-top: 24px; line-height: 1.5; }
+          .signature { font-size: 14px; font-weight: 600; color: #0f172a; margin-top: 28px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
         </style>
       </head>
       <body>
         <div class="container">
-          <div class="header">
-            <h1 class="brand">Mehak Sanitary Hardware</h1>
-            <p class="subtitle">Administrator Account Security</p>
+          <h1 class="title">Mehak Sanitary Hardware</h1>
+          <p class="text">Hello,</p>
+          <p class="text">We received a request to reset your Mehak Admin password.</p>
+          <p class="text">Click the button below to create a new password:</p>
+          <div class="btn-container">
+            <a href="${resetUrl}" class="btn" target="_blank">Reset Password</a>
           </div>
-          <div class="content">
-            <p>Hello Administrator,</p>
-            <p>A password reset was requested for your Mehak Sanitary Admin account (<strong>${toEmail}</strong>).</p>
-            <p>Click the button below to reset your password. This link is valid for <strong>30 minutes</strong> and can only be used once:</p>
-            <div class="btn-container">
-              <a href="${resetUrl}" class="btn" target="_blank">Reset Admin Password</a>
-            </div>
-            <p class="notice">
-              If the button above does not work, copy and paste this URL into your browser:<br>
-              <a href="${resetUrl}" style="color: #94a3b8;">${resetUrl}</a>
-            </p>
-            <p style="margin-top: 20px;">If you did not request a password reset, you can safely ignore this email. Your current password will remain unchanged.</p>
-          </div>
-          <div class="footer">
-            Mehak Sanitary Hardware — Confidential & Restricted Admin Portal
+          <p class="subtext">This link will expire after 30 minutes.</p>
+          <p class="subtext">If you did not request this, you can safely ignore this email.</p>
+          <div class="signature">
+            Thanks,<br>
+            Mehak Sanitary Hardware
           </div>
         </div>
       </body>
@@ -79,7 +70,7 @@ export async function sendPasswordResetEmail({ toEmail, resetToken }: SendPasswo
       body: JSON.stringify({
         from: fromEmail,
         to: [toEmail],
-        subject: 'Password Reset Request — Mehak Admin Portal',
+        subject: 'Reset your Mehak Admin password',
         html: htmlContent,
       }),
     });
