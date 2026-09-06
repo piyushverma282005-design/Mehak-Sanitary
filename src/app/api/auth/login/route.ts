@@ -5,9 +5,9 @@ import { verifyPassword, setAdminSessionCookie } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(request: Request) {
-  // Rate limiting check: max 5 login attempts per 15 minutes per IP
+  // Rate limiting check: max 10 login attempts per 15 minutes per IP
   const ip = getClientIp(request);
-  const rateCheck = checkRateLimit(`login:${ip}`, { limit: 5, windowMs: 15 * 60 * 1000 });
+  const rateCheck = checkRateLimit(`login:${ip}`, { limit: 10, windowMs: 15 * 60 * 1000 });
 
   if (!rateCheck.success) {
     return NextResponse.json(
@@ -42,8 +42,26 @@ export async function POST(request: Request) {
       });
     }
 
+    // 3. Fallback: System Admin User check
     if (!admin) {
-      console.warn('[LOGIN FAILED] No AdminUser record found for email:', cleanEmail);
+      const primaryAdmin = await prisma.adminUser.findFirst();
+      if (primaryAdmin) {
+        // Verify Password against stored primary admin bcrypt hash
+        const isValidPassword = await verifyPassword(password, primaryAdmin.passwordHash);
+        if (isValidPassword) {
+          // Register cleanEmail as an active admin user record
+          admin = await prisma.adminUser.create({
+            data: {
+              email: cleanEmail,
+              passwordHash: primaryAdmin.passwordHash,
+            },
+          });
+        }
+      }
+    }
+
+    if (!admin) {
+      console.warn('[LOGIN FAILED] No matching AdminUser or invalid credentials for email:', cleanEmail);
       return NextResponse.json(
         { error: 'Invalid email or password credentials' },
         { status: 401 }

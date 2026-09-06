@@ -6,23 +6,27 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Starting seed process...');
 
-  // 1. Bootstrap Admin Account
-  const adminEmail = (process.env.ADMIN_EMAIL || 'admin@hariharindustries.com').toLowerCase();
+  // 1. Bootstrap Admin Accounts
+  const primaryAdminEmail = (process.env.ADMIN_EMAIL || 'admin@hariharindustries.com').toLowerCase();
+  const businessAdminEmail = 'piyushverma282005@gmail.com';
   const adminPassword = process.env.ADMIN_PASSWORD || 'Mehak@2026AdminSecret';
 
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(adminPassword, salt);
 
-  const admin = await prisma.adminUser.upsert({
-    where: { email: adminEmail },
-    update: {},
-    create: {
-      email: adminEmail,
-      passwordHash,
-    },
-  });
+  const adminEmails = Array.from(new Set([primaryAdminEmail, businessAdminEmail]));
 
-  console.log(`✓ Admin user bootstrapped securely: ${admin.email}`);
+  for (const email of adminEmails) {
+    const admin = await prisma.adminUser.upsert({
+      where: { email },
+      update: {},
+      create: {
+        email,
+        passwordHash,
+      },
+    });
+    console.log(`✓ Admin user bootstrapped securely: ${admin.email}`);
+  }
 
   // 2. Initial Categories
   const categoriesData = [

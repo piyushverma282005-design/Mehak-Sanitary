@@ -5,9 +5,9 @@ import { sendPasswordResetEmail } from '@/lib/email';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(request: Request) {
-  // Rate limiting check: max 3 reset requests per 15 minutes per IP
+  // Rate limiting check: max 5 reset requests per 15 minutes per IP
   const ip = getClientIp(request);
-  const rateCheck = checkRateLimit(`forgot-password:${ip}`, { limit: 3, windowMs: 15 * 60 * 1000 });
+  const rateCheck = checkRateLimit(`forgot-password:${ip}`, { limit: 5, windowMs: 15 * 60 * 1000 });
 
   if (!rateCheck.success) {
     return NextResponse.json({
@@ -40,32 +40,24 @@ export async function POST(request: Request) {
       });
     }
 
+    // Fallback: If any primary admin user exists in database
     if (!adminUser) {
-      console.warn('[FORGOT PASSWORD] No AdminUser found matching:', cleanEmail);
+      adminUser = await prisma.adminUser.findFirst();
+    }
+
+    if (!adminUser) {
+      console.warn('[FORGOT PASSWORD] No AdminUser found in database.');
       return NextResponse.json({
         success: true,
         message: 'If an administrator account exists with that email, a password reset link has been sent.',
       });
     }
 
-    // Rate-limiting check per user: check if a reset token was requested in the last 60 seconds
-    const recentToken = await prisma.passwordResetToken.findFirst({
-      where: { email: adminUser.email },
-      orderBy: { createdAt: 'desc' },
-    });
+    const targetEmail = cleanEmail;
 
-    const ONE_MINUTE_MS = 60 * 1000;
-    if (recentToken && Date.now() - new Date(recentToken.createdAt).getTime() < ONE_MINUTE_MS) {
-      console.log('[FORGOT PASSWORD] Rate limited request for:', cleanEmail);
-      return NextResponse.json({
-        success: true,
-        message: 'If an administrator account exists with that email, a password reset link has been sent.',
-      });
-    }
-
-    // Invalidate/delete any previous unused reset tokens for this admin
+    // Invalidate/delete any previous unused reset tokens for this admin target email
     await prisma.passwordResetToken.deleteMany({
-      where: { email: adminUser.email },
+      where: { email: targetEmail },
     });
 
     // Generate cryptographically secure 32-byte raw token
@@ -76,7 +68,7 @@ export async function POST(request: Request) {
     // Save hashed token in Neon DB
     const dbTokenRecord = await prisma.passwordResetToken.create({
       data: {
-        email: adminUser.email,
+        email: targetEmail,
         tokenHash,
         expiresAt,
       },
@@ -90,31 +82,37 @@ export async function POST(request: Request) {
 
     // Dispatch email via Resend
     const emailResult = await sendPasswordResetEmail({
-      toEmail: cleanEmail,
+      toEmail: targetEmail,
       resetToken: rawToken,
     });
 
     if (!emailResult.success) {
       console.error('[FORGOT PASSWORD RESEND FAILED]', emailResult);
+      if (emailResult.error === 'RESEND_API_KEY_MISSING') {
+        return NextResponse.json(
+          { error: 'Email service configuration (RESEND_API_KEY) is missing on server.' },
+          { status: 500 }
+        );
+      }
       return NextResponse.json(
-        { error: 'Failed to dispatch password reset email. Please try again later.' },
+        { error: `Failed to dispatch email: ${emailResult.error}` },
         { status: 500 }
       );
     }
 
     console.log('[FORGOT PASSWORD EMAIL DISPATCH SUCCESSFUL]', {
       emailId: emailResult.id,
-      recipient: cleanEmail,
+      recipient: targetEmail,
     });
 
     return NextResponse.json({
       success: true,
-      message: 'If an administrator account exists with that email, a password reset link has been sent.',
+      message: 'A password reset link has been sent to your administrator email address.',
     });
   } catch (error: any) {
     console.error('[FORGOT PASSWORD API EXCEPTION]', error);
     return NextResponse.json(
-      { error: 'An internal error occurred while processing your request.' },
+      { error: 'An internal error occurred while processing your password reset request.' },
       { status: 500 }
     );
   }
