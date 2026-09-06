@@ -87,6 +87,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Categories', href: '/admin/categories', icon: FolderTree },
     { name: 'Customer Enquiries', href: '/admin/enquiries', icon: Inbox },
     { name: 'Website Settings', href: '/admin/settings', icon: Settings },
+    { name: 'Account Security', href: '/admin/account', icon: Shield },
   ];
 
   const getPageTitle = () => {
@@ -97,6 +98,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (pathname.startsWith('/admin/categories')) return 'Category Management';
     if (pathname.startsWith('/admin/enquiries')) return 'Customer Enquiries';
     if (pathname.startsWith('/admin/settings')) return 'Website & Business Settings';
+    if (pathname.startsWith('/admin/account')) return 'Account & Security Settings';
     return 'Admin Panel';
   };
 

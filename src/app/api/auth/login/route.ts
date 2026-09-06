@@ -2,15 +2,27 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { loginSchema } from '@/lib/validations';
 import { verifyPassword, setAdminSessionCookie } from '@/lib/auth';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(request: Request) {
+  // Rate limiting check: max 5 login attempts per 15 minutes per IP
+  const ip = getClientIp(request);
+  const rateCheck = checkRateLimit(`login:${ip}`, { limit: 5, windowMs: 15 * 60 * 1000 });
+
+  if (!rateCheck.success) {
+    return NextResponse.json(
+      { error: 'Too many failed login attempts. Please try again after 15 minutes.' },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await request.json();
     const validation = loginSchema.safeParse(body);
 
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invalid input', details: validation.error.flatten() },
+        { error: 'Invalid input parameters', details: validation.error.flatten() },
         { status: 400 }
       );
     }
@@ -30,13 +42,8 @@ export async function POST(request: Request) {
       });
     }
 
-    // 3. Fallback: Single admin user in system
     if (!admin) {
-      admin = await prisma.adminUser.findFirst();
-    }
-
-    if (!admin) {
-      console.warn('[LOGIN FAILED] No AdminUser record found in database.');
+      console.warn('[LOGIN FAILED] No AdminUser record found for email:', cleanEmail);
       return NextResponse.json(
         { error: 'Invalid email or password credentials' },
         { status: 401 }

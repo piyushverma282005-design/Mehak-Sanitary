@@ -1,9 +1,42 @@
 import { z } from 'zod';
 
+const safeUrlSchema = z
+  .string()
+  .refine(
+    (val) => {
+      if (!val || val.trim() === '') return true;
+      try {
+        const parsed = new URL(val);
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    },
+    { message: 'URL must use safe http:// or https:// protocol' }
+  )
+  .nullable()
+  .optional()
+  .or(z.literal(''));
+
 export const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(4, 'Password must be at least 4 characters long'),
 });
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Current password is required'),
+    newPassword: z
+      .string()
+      .min(8, 'New password must be at least 8 characters long')
+      .regex(/[A-Za-z]/, 'Password must contain at least one letter')
+      .regex(/[0-9]/, 'Password must contain at least one number'),
+    confirmPassword: z.string().min(1, 'Please confirm your new password'),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'New passwords do not match',
+    path: ['confirmPassword'],
+  });
 
 export const publicEnquirySchema = z.object({
   name: z.string().min(1, 'Full name is required'),
@@ -52,15 +85,20 @@ export const businessSettingsSchema = z.object({
   phoneTertiary: z.string().nullable().optional(),
   whatsapp: z.string().min(8, 'Valid WhatsApp number is required'),
   email: z.string().email('Please enter a valid email address'),
-  emailSecondary: z.string().email('Please enter a valid secondary email address').nullable().optional().or(z.literal('')),
+  emailSecondary: z
+    .string()
+    .email('Please enter a valid secondary email address')
+    .nullable()
+    .optional()
+    .or(z.literal('')),
   address: z.string().min(1, 'Address is required'),
   city: z.string().min(1, 'City is required'),
   state: z.string().min(1, 'State is required'),
   pincode: z.string().min(1, 'Pincode is required'),
   country: z.string().min(1, 'Country is required'),
-  googleMapsUrl: z.string().url('Invalid Google Maps URL').nullable().optional().or(z.literal('')),
-  mapEmbedUrl: z.string().nullable().optional(),
-  instagramUrl: z.string().url('Invalid Instagram URL').nullable().optional().or(z.literal('')),
-  facebookUrl: z.string().url('Invalid Facebook URL').nullable().optional().or(z.literal('')),
-  youtubeUrl: z.string().url('Invalid YouTube URL').nullable().optional().or(z.literal('')),
+  googleMapsUrl: safeUrlSchema,
+  mapEmbedUrl: safeUrlSchema,
+  instagramUrl: safeUrlSchema,
+  facebookUrl: safeUrlSchema,
+  youtubeUrl: safeUrlSchema,
 });

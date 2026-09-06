@@ -1,6 +1,34 @@
 import { NextResponse } from 'next/server';
 import { getAdminSession } from '@/lib/auth';
 
+function isValidImageMagicBytes(buffer: Buffer, mimeType: string): boolean {
+  if (buffer.length < 12) return false;
+
+  // JPEG: FF D8 FF
+  if (mimeType === 'image/jpeg') {
+    return buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  }
+
+  // PNG: 89 50 4E 47
+  if (mimeType === 'image/png') {
+    return buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47;
+  }
+
+  // WEBP: RIFF ... WEBP
+  if (mimeType === 'image/webp') {
+    const isRiff = buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46;
+    const isWebp = buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
+    return isRiff && isWebp;
+  }
+
+  // AVIF: ftyp at offset 4
+  if (mimeType === 'image/avif') {
+    return buffer[4] === 0x66 && buffer[5] === 0x74 && buffer[6] === 0x79 && buffer[7] === 0x70;
+  }
+
+  return false;
+}
+
 export async function POST(request: Request) {
   const session = await getAdminSession();
   if (!session) {
@@ -37,9 +65,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // Convert file buffer to persistent Data URI
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+
+    // Validate Binary Magic Bytes Signature
+    if (!isValidImageMagicBytes(buffer, file.type)) {
+      return NextResponse.json(
+        { error: 'File signature check failed. Uploaded binary content does not match image headers.' },
+        { status: 400 }
+      );
+    }
+
+    // Convert file buffer to persistent Data URI
     const base64Data = buffer.toString('base64');
     const dataUrl = `data:${file.type};base64,${base64Data}`;
 
@@ -58,7 +95,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('[IMAGE UPLOAD ERROR]', error);
     return NextResponse.json(
-      { error: error?.message || 'Failed to process and store uploaded image.' },
+      { error: 'Failed to process and store uploaded image.' },
       { status: 500 }
     );
   }

@@ -2,8 +2,18 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'mehak-sanitary-jwt-secret-fallback-key-2026';
 const COOKIE_NAME = 'admin_session';
+
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      console.warn('[SECURITY WARNING] JWT_SECRET is not explicitly defined in environment variables.');
+    }
+    return 'mehak-sanitary-jwt-secret-fallback-key-2026';
+  }
+  return secret;
+}
 
 export interface AdminPayload {
   id: string;
@@ -23,13 +33,13 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 
 // Create Signed JWT Session Token
 export function createSessionToken(payload: AdminPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: '7d' });
 }
 
 // Verify Signed JWT Session Token
 export function verifySessionToken(token: string): AdminPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as AdminPayload;
+    return jwt.verify(token, getJwtSecret()) as AdminPayload;
   } catch {
     return null;
   }
