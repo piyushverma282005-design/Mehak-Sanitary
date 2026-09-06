@@ -15,6 +15,10 @@ export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'Products', href: '/products' },

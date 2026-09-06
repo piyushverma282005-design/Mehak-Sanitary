@@ -3,12 +3,19 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { Phone, Mail, MapPin, MessageSquare, ArrowUpRight } from 'lucide-react';
 import { categoriesData } from '@/data/categories';
 import { useBusinessSettings } from '@/hooks/useBusinessSettings';
 
 export const Footer: React.FC = () => {
   const settings = useBusinessSettings();
+  const pathname = usePathname();
+
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
+
   const phoneNumbers = [settings.phonePrimary, settings.phoneSecondary, settings.phoneTertiary].filter(Boolean) as string[];
 
   return (
