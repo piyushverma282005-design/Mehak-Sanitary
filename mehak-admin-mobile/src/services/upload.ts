@@ -9,33 +9,20 @@ export const uploadService = {
   async uploadImage(imageUri: string, mimeType: string = 'image/jpeg', filename: string = 'product_image.jpg'): Promise<UploadResponse> {
     const token = await getStoredToken();
 
-    let fileToAppend: any;
+    const cleanFileName = filename || `upload_${Date.now()}.jpg`;
+    const cleanMimeType = mimeType || 'image/jpeg';
 
-    try {
-      // In Expo SDK 57 / React Native 0.86, check if standard Web File constructor is available
-      if (typeof File !== 'undefined') {
-        const response = await fetch(imageUri);
-        const blob = await response.blob();
-        fileToAppend = new File([blob], filename, { type: mimeType });
-      } else {
-        // Fallback for native React Native FormData file part (never mutate read-only Blob properties)
-        fileToAppend = {
-          uri: imageUri,
-          name: filename,
-          type: mimeType,
-        };
-      }
-    } catch (e) {
-      console.warn('[UploadService] Falling back to React Native file object:', e);
-      fileToAppend = {
-        uri: imageUri,
-        name: filename,
-        type: mimeType,
-      };
-    }
+    // Official React Native & Expo FormData file part specification.
+    // Uses a plain JavaScript object { uri, name, type }.
+    // Avoids instantiating 'new File()' or Blob objects whose 'name' property is a read-only getter in Hermes.
+    const filePart = {
+      uri: imageUri,
+      name: cleanFileName,
+      type: cleanMimeType,
+    };
 
     const formData = new FormData();
-    formData.append('file', fileToAppend);
+    formData.append('file', filePart as any);
 
     const url = `${API_BASE_URL}/api/upload`;
 
