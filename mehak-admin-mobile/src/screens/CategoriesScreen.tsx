@@ -68,7 +68,10 @@ export const CategoriesScreen: React.FC = () => {
   };
 
   const handleSaveCategory = async () => {
-    if (!name.trim()) {
+    const trimmedName = name.trim();
+    const trimmedDescription = description.trim();
+
+    if (!trimmedName) {
       Alert.alert('Validation', 'Category name cannot be empty.');
       return;
     }
@@ -76,9 +79,15 @@ export const CategoriesScreen: React.FC = () => {
     setSaving(true);
     try {
       if (editingCategory) {
-        await categoriesService.updateCategory(editingCategory.id, { name, description });
+        await categoriesService.updateCategory(editingCategory.id, {
+          name: trimmedName,
+          description: trimmedDescription || undefined,
+        });
       } else {
-        await categoriesService.createCategory({ name, description });
+        await categoriesService.createCategory({
+          name: trimmedName,
+          description: trimmedDescription || undefined,
+        });
       }
       setModalVisible(false);
       fetchCategories();
@@ -231,6 +240,7 @@ export const CategoriesScreen: React.FC = () => {
                 placeholderTextColor={colors.textPlaceholder}
                 value={name}
                 onChangeText={setName}
+                maxLength={100}
               />
             </View>
 
@@ -245,6 +255,7 @@ export const CategoriesScreen: React.FC = () => {
                 multiline
                 numberOfLines={3}
                 textAlignVertical="top"
+                maxLength={500}
               />
             </View>
 

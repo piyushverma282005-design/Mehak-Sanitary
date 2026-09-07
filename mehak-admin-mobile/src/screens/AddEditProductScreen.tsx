@@ -117,11 +117,11 @@ export const AddEditProductScreen: React.FC<{ route?: any; navigation: any }> = 
 
     try {
       const payload: Partial<Product> = {
-        name,
+        name: name.trim(),
         categoryId,
-        material,
-        shortDescription,
-        description,
+        material: material.trim() || undefined,
+        shortDescription: shortDescription.trim() || undefined,
+        description: description.trim(),
         featured,
         available,
         image: imageUri,
@@ -217,6 +217,7 @@ export const AddEditProductScreen: React.FC<{ route?: any; navigation: any }> = 
               placeholderTextColor={colors.textPlaceholder}
               value={name}
               onChangeText={setName}
+              maxLength={150}
             />
           </View>
 
@@ -253,6 +254,7 @@ export const AddEditProductScreen: React.FC<{ route?: any; navigation: any }> = 
               placeholderTextColor={colors.textPlaceholder}
               value={material}
               onChangeText={setMaterial}
+              maxLength={100}
             />
           </View>
 
@@ -264,6 +266,7 @@ export const AddEditProductScreen: React.FC<{ route?: any; navigation: any }> = 
               placeholderTextColor={colors.textPlaceholder}
               value={shortDescription}
               onChangeText={setShortDescription}
+              maxLength={250}
             />
           </View>
 
@@ -278,6 +281,7 @@ export const AddEditProductScreen: React.FC<{ route?: any; navigation: any }> = 
               multiline
               numberOfLines={4}
               textAlignVertical="top"
+              maxLength={3000}
             />
           </View>
         </View>

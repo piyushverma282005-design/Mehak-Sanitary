@@ -88,7 +88,7 @@ export const LoginScreen: React.FC = () => {
               <Mail color={colors.textSecondary} size={18} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="piyushverma282005@gmail.com"
+                placeholder="admin@example.com"
                 placeholderTextColor={colors.textPlaceholder}
                 value={email}
                 onChangeText={setEmail}
