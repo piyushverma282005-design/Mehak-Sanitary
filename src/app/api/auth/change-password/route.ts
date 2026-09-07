@@ -5,7 +5,7 @@ import { changePasswordSchema } from '@/lib/validations';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(request: Request) {
-  const session = await getAdminSession();
+  const session = await getAdminSession(request);
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
   }

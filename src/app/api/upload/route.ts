@@ -30,7 +30,7 @@ function isValidImageMagicBytes(buffer: Buffer, mimeType: string): boolean {
 }
 
 export async function POST(request: Request) {
-  const session = await getAdminSession();
+  const session = await getAdminSession(request);
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
   }

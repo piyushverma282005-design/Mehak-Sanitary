@@ -53,7 +53,7 @@ export async function POST(request: Request) {
 
 // Protected GET enquiries list (Admin only)
 export async function GET(request: Request) {
-  const session = await getAdminSession();
+  const session = await getAdminSession(request);
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

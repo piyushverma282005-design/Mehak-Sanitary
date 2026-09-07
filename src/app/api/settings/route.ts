@@ -25,7 +25,7 @@ export async function GET() {
 
 // Protected PUT update website settings (Admin only)
 export async function PUT(request: Request) {
-  const session = await getAdminSession();
+  const session = await getAdminSession(request);
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized. Admin login required.' }, { status: 401 });
   }

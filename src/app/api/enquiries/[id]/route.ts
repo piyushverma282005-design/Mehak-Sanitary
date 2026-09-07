@@ -9,7 +9,7 @@ interface RouteParams {
 
 // Protected GET enquiry by id (Admin only)
 export async function GET(request: Request, { params }: RouteParams) {
-  const session = await getAdminSession();
+  const session = await getAdminSession(request);
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -34,7 +34,7 @@ export async function GET(request: Request, { params }: RouteParams) {
 
 // Protected PATCH update enquiry status (Admin only)
 export async function PATCH(request: Request, { params }: RouteParams) {
-  const session = await getAdminSession();
+  const session = await getAdminSession(request);
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -66,7 +66,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
 // Protected DELETE enquiry (Admin only)
 export async function DELETE(request: Request, { params }: RouteParams) {
-  const session = await getAdminSession();
+  const session = await getAdminSession(request);
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

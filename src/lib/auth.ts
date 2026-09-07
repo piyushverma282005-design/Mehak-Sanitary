@@ -70,8 +70,17 @@ export async function clearAdminSessionCookie() {
   });
 }
 
-// Get Current Authenticated Admin Session
-export async function getAdminSession(): Promise<AdminPayload | null> {
+// Get Current Authenticated Admin Session (supports Authorization: Bearer <token> AND admin_session cookie)
+export async function getAdminSession(request?: Request): Promise<AdminPayload | null> {
+  if (request) {
+    const authHeader = request.headers.get('authorization');
+    if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+      const bearerToken = authHeader.substring(7).trim();
+      const payload = verifySessionToken(bearerToken);
+      if (payload) return payload;
+    }
+  }
+
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return null;

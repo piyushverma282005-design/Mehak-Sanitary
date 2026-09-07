@@ -94,7 +94,7 @@ export async function GET(request: Request) {
 
 // Protected POST create product (Admin only)
 export async function POST(request: Request) {
-  const session = await getAdminSession();
+  const session = await getAdminSession(request);
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

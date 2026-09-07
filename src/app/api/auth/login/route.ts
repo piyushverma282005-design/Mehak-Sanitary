@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { loginSchema } from '@/lib/validations';
-import { verifyPassword, setAdminSessionCookie } from '@/lib/auth';
+import { verifyPassword, setAdminSessionCookie, createSessionToken } from '@/lib/auth';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 export async function POST(request: Request) {
@@ -79,12 +79,16 @@ export async function POST(request: Request) {
       );
     }
 
-    // Set secure HttpOnly session cookie
+    // Generate signed JWT token
+    const token = createSessionToken({ id: admin.id, email: admin.email });
+
+    // Set secure HttpOnly session cookie for web clients
     await setAdminSessionCookie({ id: admin.id, email: admin.email });
     console.log('[LOGIN SUCCESSFUL] Authenticated admin:', admin.email);
 
     return NextResponse.json({
       message: 'Logged in successfully',
+      token,
       user: { id: admin.id, email: admin.email },
     });
   } catch (error) {
