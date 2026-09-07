@@ -29,12 +29,26 @@ export const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
   const fetchProductsAndCategories = async () => {
     try {
       setError('');
-      const [prodsData, catsData] = await Promise.all([
+      const [prodsRes, catsRes] = await Promise.allSettled([
         productsService.getProducts({ category: selectedCategory, search: searchQuery }),
         categoriesService.getCategories(),
       ]);
-      setProducts(prodsData);
-      setCategories(catsData);
+
+      if (prodsRes.status === 'fulfilled') {
+        setProducts(prodsRes.value);
+      } else {
+        console.warn('Failed to load products:', prodsRes.reason?.message);
+      }
+
+      if (catsRes.status === 'fulfilled') {
+        setCategories(catsRes.value);
+      } else {
+        console.warn('Failed to load categories:', catsRes.reason?.message);
+      }
+
+      if (prodsRes.status === 'rejected' && catsRes.status === 'rejected') {
+        setError(prodsRes.reason?.message || 'Failed to load products.');
+      }
     } catch (err: any) {
       console.error('Fetch products error:', err);
       setError(err?.message || 'Failed to load products.');

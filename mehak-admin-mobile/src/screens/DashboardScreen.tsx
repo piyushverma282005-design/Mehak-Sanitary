@@ -35,11 +35,26 @@ export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) =
   const fetchMetrics = async () => {
     try {
       setError('');
-      const [products, categories, enquiries] = await Promise.all([
+      console.log('[DashboardScreen] Fetching dashboard metrics...');
+      const [productsRes, categoriesRes, enquiriesRes] = await Promise.allSettled([
         productsService.getProducts(),
         categoriesService.getCategories(),
         enquiriesService.getEnquiries(),
       ]);
+
+      const products = productsRes.status === 'fulfilled' ? productsRes.value : [];
+      const categories = categoriesRes.status === 'fulfilled' ? categoriesRes.value : [];
+      const enquiries = enquiriesRes.status === 'fulfilled' ? enquiriesRes.value : [];
+
+      if (productsRes.status === 'rejected') {
+        console.warn('[DashboardScreen] Failed to load products:', productsRes.reason?.message);
+      }
+      if (categoriesRes.status === 'rejected') {
+        console.warn('[DashboardScreen] Failed to load categories:', categoriesRes.reason?.message);
+      }
+      if (enquiriesRes.status === 'rejected') {
+        console.warn('[DashboardScreen] Failed to load enquiries:', enquiriesRes.reason?.message);
+      }
 
       const totalProducts = products.length;
       const totalCategories = categories.length;
