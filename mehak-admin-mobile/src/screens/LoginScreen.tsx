@@ -46,7 +46,7 @@ export const LoginScreen: React.FC = () => {
     >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         {/* Brand Header */}
-        <View className="items-center" style={styles.header}>
+        <View style={styles.header}>
           <View style={styles.logoContainer}>
             <Image
               source={require('../../assets/icon.png')}
