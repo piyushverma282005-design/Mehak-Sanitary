@@ -1,5 +1,4 @@
-import { Platform } from 'react-native';
-import { File as ExpoFile, UploadType } from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { API_BASE_URL, getStoredToken } from '../api/client';
 
 export interface UploadResponse {
@@ -27,21 +26,18 @@ export const uploadService = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    // 1. Native Mobile (Android & iOS in Expo Go):
-    // Use Expo SDK 57's native FileSystem UploadTask.
-    // This executes native OkHttp multipart file streaming directly on Android,
-    // completely bypassing Expo C++ fetch(), JavaScript FormData, and Hermes Blob getter limitations.
-    if (Platform.OS !== 'web') {
-      try {
-        const file = new ExpoFile(imageUri);
-        const task = file.createUploadTask(url, {
-          uploadType: UploadType.MULTIPART,
+    // Strategy 1: Use Expo's native legacy uploadAsync in Expo Go.
+    // This delegates the multipart upload directly to Android's native ExponentFileSystemModule via OkHttp,
+    // avoiding all JavaScript FormData and C++ fetch parsing issues.
+    try {
+      if (FileSystem && typeof FileSystem.uploadAsync === 'function') {
+        const result = await FileSystem.uploadAsync(url, imageUri, {
+          httpMethod: 'POST',
+          uploadType: FileSystem.FileSystemUploadType.MULTIPART,
           fieldName: 'file',
           mimeType: cleanMimeType,
           headers,
         });
-
-        const result = await task.uploadAsync();
 
         let data: any = {};
         try {
@@ -50,53 +46,49 @@ export const uploadService = {
           data = {};
         }
 
-        if (result.status < 200 || result.status >= 300) {
+        if (result.status >= 200 && result.status < 300 && data.url) {
+          return data as UploadResponse;
+        }
+
+        if (result.status >= 400) {
           throw new Error(data?.error || `Upload failed with status ${result.status}`);
         }
-
-        return data as UploadResponse;
-      } catch (nativeErr: any) {
-        console.warn('[UploadService] Native UploadTask error, trying fallback:', nativeErr?.message || nativeErr);
-        // If native UploadTask throws, fall through to XMLHttpRequest fallback below
       }
+    } catch (fsErr: any) {
+      console.warn('[UploadService] FileSystem.uploadAsync error, trying WinterCG Blob upload:', fsErr?.message || fsErr);
     }
 
-    // 2. Web or Universal Fallback:
-    // XMLHttpRequest routes directly through the network layer without invoking Expo's C++ fetch validator.
-    return new Promise<UploadResponse>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', url);
+    // Strategy 2: WinterCG compliant FormData upload.
+    // In WinterCG/Web standards, files are attached using formData.append(name, blob, filename).
+    // This passes a true Blob (with filename as 3rd parameter), completely avoiding { uri, name, type }
+    // which causes 'Unsupported FormDataPart implementation', and avoiding new File() which has Hermes getter issues.
+    try {
+      const fileResponse = await fetch(imageUri);
+      const rawBlob = await fileResponse.blob();
 
-      xhr.setRequestHeader('Accept', 'application/json');
-      if (token) {
-        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-      }
-
-      xhr.onload = () => {
-        try {
-          const data = JSON.parse(xhr.responseText || '{}');
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve(data as UploadResponse);
-          } else {
-            reject(new Error(data?.error || `Upload failed with status ${xhr.status}`));
-          }
-        } catch {
-          reject(new Error(`Upload failed with status ${xhr.status}`));
-        }
-      };
-
-      xhr.onerror = () => {
-        reject(new Error('Network error during image upload. Please check connection.'));
-      };
+      // Ensure proper MIME type using standard W3C Blob.slice without mutating properties
+      const blob = rawBlob.type === cleanMimeType ? rawBlob : rawBlob.slice(0, rawBlob.size, cleanMimeType);
 
       const formData = new FormData();
-      formData.append('file', {
-        uri: imageUri,
-        name: cleanFileName,
-        type: cleanMimeType,
-      } as any);
+      // Notice: 3rd argument is cleanFileName as per W3C specification
+      formData.append('file', blob, cleanFileName);
 
-      xhr.send(formData);
-    });
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data?.error || `Upload failed with status ${response.status}`);
+      }
+
+      return data as UploadResponse;
+    } catch (fetchErr: any) {
+      console.error('[UploadService] WinterCG upload error:', fetchErr);
+      throw new Error(fetchErr?.message || 'Failed to upload image.');
+    }
   },
 };
