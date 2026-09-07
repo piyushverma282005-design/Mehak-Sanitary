@@ -15,7 +15,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0f172a"
+        "backgroundColor": "#000000"
       },
       "package": "com.hariharindustries.mehakadmin"
     },
@@ -30,7 +30,7 @@
         {
           "image": "./assets/splash.png",
           "resizeMode": "contain",
-          "backgroundColor": "#0f172a"
+          "backgroundColor": "#000000"
         }
       ]
     ]
