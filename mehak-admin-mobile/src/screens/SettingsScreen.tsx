@@ -9,12 +9,16 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { settingsService } from '../services/settings';
 import { useAuth } from '../context/AuthContext';
 import { BusinessSettings } from '../types';
-import { Settings, Save, LogOut, Building, Phone, Mail, MapPin, Shield } from 'lucide-react-native';
+import { AppHeader } from '../components/AppHeader';
+import { colors, spacing, borderRadius } from '../theme/colors';
+import { Save, LogOut, Shield, Phone, Mail, MapPin } from 'lucide-react-native';
 
 export const SettingsScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
   const [settings, setSettings] = useState<Partial<BusinessSettings>>({});
   const [loading, setLoading] = useState(true);
@@ -49,7 +53,7 @@ export const SettingsScreen: React.FC = () => {
   };
 
   const handleLogoutConfirm = () => {
-    Alert.alert('Confirm Sign Out', 'Are you sure you want to sign out of Mehak Mobile Admin?', [
+    Alert.alert('Sign Out', 'Are you sure you want to sign out of Mehak Mobile Admin?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Sign Out',
@@ -59,291 +63,337 @@ export const SettingsScreen: React.FC = () => {
     ]);
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingCenter}>
-        <ActivityIndicator size="large" color="#10b981" />
-      </View>
-    );
-  }
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      {/* Top Title */}
-      <View style={styles.topHeader}>
-        <Text style={styles.headerTitle}>Settings</Text>
-        <Text style={styles.headerSubtitle}>Website & Business Configuration</Text>
-      </View>
+    <View style={styles.container}>
+      <AppHeader
+        title="Settings"
+        subtitle="Account & Business Profile"
+      />
 
-      {/* Account Info Card */}
-      <View style={styles.card}>
-        <View style={styles.accountRow}>
-          <View style={styles.avatarContainer}>
-            <Shield color="#10b981" size={24} />
+      {loading ? (
+        <View style={styles.loadingCenter}>
+          <ActivityIndicator size="large" color={colors.emerald} />
+        </View>
+      ) : (
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: 80 + insets.bottom },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Account Card */}
+          <View style={styles.card}>
+            <View style={styles.accountRow}>
+              <View style={styles.avatarContainer}>
+                <Shield color={colors.emerald} size={20} />
+              </View>
+              <View style={styles.accountText}>
+                <Text style={styles.accountEmail} numberOfLines={1}>
+                  {user?.email}
+                </Text>
+                <Text style={styles.accountRole}>Administrator</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.logoutButton}
+                onPress={handleLogoutConfirm}
+                activeOpacity={0.7}
+              >
+                <LogOut color={colors.dangerLight} size={15} />
+                <Text style={styles.logoutButtonText}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <View>
-            <Text style={styles.accountEmail}>{user?.email}</Text>
-            <Text style={styles.accountRole}>System Administrator</Text>
+
+          {/* Business Identity Card */}
+          <View style={styles.card}>
+            <Text style={styles.cardSectionTitle}>Business Identity</Text>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Legal Business Name</Text>
+              <TextInput
+                style={styles.input}
+                value={settings.name || ''}
+                placeholderTextColor={colors.textPlaceholder}
+                onChangeText={(text) => setSettings({ ...settings, name: text })}
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Brand Name</Text>
+              <TextInput
+                style={styles.input}
+                value={settings.brand || ''}
+                placeholderTextColor={colors.textPlaceholder}
+                onChangeText={(text) => setSettings({ ...settings, brand: text })}
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Tagline / Slogan</Text>
+              <TextInput
+                style={styles.input}
+                value={settings.tagline || ''}
+                placeholderTextColor={colors.textPlaceholder}
+                onChangeText={(text) => setSettings({ ...settings, tagline: text })}
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Company Description</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={settings.description || ''}
+                placeholderTextColor={colors.textPlaceholder}
+                onChangeText={(text) => setSettings({ ...settings, description: text })}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+            </View>
           </View>
-        </View>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogoutConfirm} activeOpacity={0.8}>
-          <LogOut color="#ef4444" size={16} />
-          <Text style={styles.logoutButtonText}>Sign Out of Admin</Text>
-        </TouchableOpacity>
-      </View>
+          {/* Contact Numbers */}
+          <View style={styles.card}>
+            <Text style={styles.cardSectionTitle}>Contact Channels</Text>
 
-      {/* Business Identity */}
-      <View style={styles.card}>
-        <Text style={styles.cardSectionTitle}>Business Identity</Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Primary Phone (Sales)</Text>
+              <TextInput
+                style={styles.input}
+                value={settings.phonePrimary || ''}
+                placeholderTextColor={colors.textPlaceholder}
+                keyboardType="phone-pad"
+                onChangeText={(text) => setSettings({ ...settings, phonePrimary: text })}
+              />
+            </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Legal Name</Text>
-          <TextInput
-            style={styles.input}
-            value={settings.name || ''}
-            onChangeText={(text) => setSettings({ ...settings, name: text })}
-          />
-        </View>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>WhatsApp Number</Text>
+              <TextInput
+                style={styles.input}
+                value={settings.whatsapp || ''}
+                placeholderTextColor={colors.textPlaceholder}
+                keyboardType="phone-pad"
+                onChangeText={(text) => setSettings({ ...settings, whatsapp: text })}
+              />
+            </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Brand Name</Text>
-          <TextInput
-            style={styles.input}
-            value={settings.brand || ''}
-            onChangeText={(text) => setSettings({ ...settings, brand: text })}
-          />
-        </View>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Support Email</Text>
+              <TextInput
+                style={styles.input}
+                value={settings.email || ''}
+                placeholderTextColor={colors.textPlaceholder}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                onChangeText={(text) => setSettings({ ...settings, email: text })}
+              />
+            </View>
+          </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Tagline</Text>
-          <TextInput
-            style={styles.input}
-            value={settings.tagline || ''}
-            onChangeText={(text) => setSettings({ ...settings, tagline: text })}
-          />
-        </View>
-      </View>
+          {/* Address */}
+          <View style={styles.card}>
+            <Text style={styles.cardSectionTitle}>Physical Address</Text>
 
-      {/* Contact Channels */}
-      <View style={styles.card}>
-        <Text style={styles.cardSectionTitle}>Contact Channels</Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Street / Industrial Area</Text>
+              <TextInput
+                style={styles.input}
+                value={settings.address || ''}
+                placeholderTextColor={colors.textPlaceholder}
+                onChangeText={(text) => setSettings({ ...settings, address: text })}
+              />
+            </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Primary Phone</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="phone-pad"
-            value={settings.phonePrimary || ''}
-            onChangeText={(text) => setSettings({ ...settings, phonePrimary: text })}
-          />
-        </View>
+            <View style={styles.row}>
+              <View style={[styles.formGroup, styles.halfCol]}>
+                <Text style={styles.label}>City</Text>
+                <TextInput
+                  style={styles.input}
+                  value={settings.city || ''}
+                  placeholderTextColor={colors.textPlaceholder}
+                  onChangeText={(text) => setSettings({ ...settings, city: text })}
+                />
+              </View>
+              <View style={[styles.formGroup, styles.halfCol]}>
+                <Text style={styles.label}>State</Text>
+                <TextInput
+                  style={styles.input}
+                  value={settings.state || ''}
+                  placeholderTextColor={colors.textPlaceholder}
+                  onChangeText={(text) => setSettings({ ...settings, state: text })}
+                />
+              </View>
+            </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>WhatsApp Number</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="phone-pad"
-            value={settings.whatsapp || ''}
-            onChangeText={(text) => setSettings({ ...settings, whatsapp: text })}
-          />
-        </View>
+            <View style={styles.row}>
+              <View style={[styles.formGroup, styles.halfCol]}>
+                <Text style={styles.label}>PIN Code</Text>
+                <TextInput
+                  style={styles.input}
+                  value={settings.pincode || ''}
+                  placeholderTextColor={colors.textPlaceholder}
+                  keyboardType="numeric"
+                  onChangeText={(text) => setSettings({ ...settings, pincode: text })}
+                />
+              </View>
+              <View style={[styles.formGroup, styles.halfCol]}>
+                <Text style={styles.label}>Country</Text>
+                <TextInput
+                  style={styles.input}
+                  value={settings.country || ''}
+                  placeholderTextColor={colors.textPlaceholder}
+                  onChangeText={(text) => setSettings({ ...settings, country: text })}
+                />
+              </View>
+            </View>
+          </View>
 
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Official Business Email</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="email-address"
-            value={settings.email || ''}
-            onChangeText={(text) => setSettings({ ...settings, email: text })}
-          />
-        </View>
-      </View>
-
-      {/* Address Details */}
-      <View style={styles.card}>
-        <Text style={styles.cardSectionTitle}>Physical Address & Location</Text>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Address Line</Text>
-          <TextInput
-            style={styles.input}
-            value={settings.address || ''}
-            onChangeText={(text) => setSettings({ ...settings, address: text })}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>City</Text>
-          <TextInput
-            style={styles.input}
-            value={settings.city || ''}
-            onChangeText={(text) => setSettings({ ...settings, city: text })}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>State</Text>
-          <TextInput
-            style={styles.input}
-            value={settings.state || ''}
-            onChangeText={(text) => setSettings({ ...settings, state: text })}
-          />
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Pincode</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={settings.pincode || ''}
-            onChangeText={(text) => setSettings({ ...settings, pincode: text })}
-          />
-        </View>
-      </View>
-
-      {/* Save Button */}
-      <TouchableOpacity
-        style={[styles.saveButton, saving && styles.buttonDisabled]}
-        onPress={handleSave}
-        disabled={saving}
-        activeOpacity={0.8}
-      >
-        {saving ? (
-          <ActivityIndicator color="#ffffff" />
-        ) : (
-          <>
-            <Save color="#ffffff" size={18} />
-            <Text style={styles.saveButtonText}>Save All Settings</Text>
-          </>
-        )}
-      </TouchableOpacity>
-    </ScrollView>
+          {/* Save Button */}
+          <TouchableOpacity
+            style={[styles.saveButton, saving && styles.buttonDisabled]}
+            onPress={handleSave}
+            disabled={saving}
+            activeOpacity={0.8}
+          >
+            {saving ? (
+              <ActivityIndicator color="#ffffff" size="small" />
+            ) : (
+              <>
+                <Save color="#ffffff" size={16} />
+                <Text style={styles.saveButtonText}>Save Configuration</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.background,
+  },
+  scroll: {
+    flex: 1,
   },
   content: {
-    padding: 20,
-    gap: 16,
-    paddingBottom: 40,
+    padding: spacing.lg,
   },
   loadingCenter: {
     flex: 1,
-    backgroundColor: '#0f172a',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  topHeader: {
-    marginBottom: 4,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: '#ffffff',
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: '#94a3b8',
-    marginTop: 2,
-  },
   card: {
-    backgroundColor: '#1e293b',
-    borderRadius: 20,
-    padding: 20,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
+    marginBottom: spacing.md,
   },
   accountRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    marginBottom: 16,
   },
   avatarContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: '#0f172a',
+    width: 38,
+    height: 38,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.emeraldSubtle,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: 'rgba(16, 185, 129, 0.25)',
+  },
+  accountText: {
+    flex: 1,
+    marginLeft: spacing.md,
   },
   accountEmail: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
   accountRole: {
     fontSize: 11,
-    color: '#34d399',
-    fontWeight: '600',
-    marginTop: 2,
+    color: colors.textSecondary,
+    marginTop: 1,
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: colors.dangerSubtle,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
-    borderRadius: 12,
-    paddingVertical: 12,
-    gap: 8,
+    borderColor: 'rgba(239, 68, 68, 0.25)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: borderRadius.sm,
+    gap: 4,
   },
   logoutButtonText: {
-    color: '#ef4444',
-    fontSize: 13,
-    fontWeight: '800',
+    color: colors.dangerLight,
+    fontSize: 11,
+    fontWeight: '600',
   },
   cardSectionTitle: {
     fontSize: 13,
-    fontWeight: '800',
-    color: '#10b981',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 14,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
+    letterSpacing: -0.2,
   },
   formGroup: {
-    marginBottom: 14,
+    marginBottom: spacing.md,
   },
   label: {
     fontSize: 11,
-    fontWeight: '800',
-    color: '#94a3b8',
-    textTransform: 'uppercase',
+    fontWeight: '600',
+    color: colors.textSecondary,
     marginBottom: 6,
   },
   input: {
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#334155',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    height: 42,
+    color: colors.textPrimary,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  textArea: {
+    height: 70,
+    paddingTop: spacing.sm,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  halfCol: {
+    flex: 1,
   },
   saveButton: {
-    backgroundColor: '#10b981',
-    height: 52,
-    borderRadius: 14,
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
-    gap: 8,
+    justifyContent: 'center',
+    backgroundColor: colors.emerald,
+    height: 46,
+    borderRadius: borderRadius.md,
+    gap: spacing.xs,
+    marginTop: spacing.xs,
   },
   saveButtonText: {
     color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: 14,
+    fontWeight: '700',
   },
   buttonDisabled: {
     opacity: 0.6,

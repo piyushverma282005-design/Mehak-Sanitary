@@ -9,9 +9,12 @@ import {
   RefreshControl,
   ScrollView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { enquiriesService } from '../services/enquiries';
-import { Enquiry, EnquiryStatus } from '../types';
-import { Inbox, Phone, Mail, Building, Clock, ChevronRight } from 'lucide-react-native';
+import { Enquiry } from '../types';
+import { AppHeader } from '../components/AppHeader';
+import { colors, spacing, borderRadius } from '../theme/colors';
+import { Inbox, Phone, Mail, ChevronRight, Clock } from 'lucide-react-native';
 
 const STATUS_OPTIONS: Array<{ label: string; value: string }> = [
   { label: 'All Leads', value: 'all' },
@@ -23,6 +26,7 @@ const STATUS_OPTIONS: Array<{ label: string; value: string }> = [
 ];
 
 export const EnquiriesScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -49,90 +53,134 @@ export const EnquiriesScreen: React.FC<{ navigation: any }> = ({ navigation }) =
     fetchEnquiries();
   }, [selectedStatus]);
 
-  const renderEnquiryItem = ({ item }: { item: Enquiry }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate('EnquiryDetail', { enquiry: item })}
-      activeOpacity={0.8}
-    >
-      <View style={styles.cardHeader}>
-        <Text style={styles.name}>{item.name}</Text>
-        <View style={[styles.badge, item.status === 'NEW' ? styles.badgeNew : styles.badgeDefault]}>
-          <Text style={styles.badgeText}>{item.status}</Text>
+  const renderEnquiryItem = ({ item }: { item: Enquiry }) => {
+    const isNew = item.status === 'NEW';
+    const isContacted = item.status === 'CONTACTED';
+    const isInProgress = item.status === 'IN_PROGRESS';
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => navigation.navigate('EnquiryDetail', { enquiry: item })}
+        activeOpacity={0.7}
+      >
+        <View style={styles.cardHeader}>
+          <Text style={styles.name} numberOfLines={1}>
+            {item.name}
+          </Text>
+          <View
+            style={[
+              styles.badge,
+              isNew && styles.badgeNew,
+              isContacted && styles.badgeContacted,
+              isInProgress && styles.badgeProgress,
+            ]}
+          >
+            <Text
+              style={[
+                styles.badgeText,
+                isNew && styles.badgeTextNew,
+                isContacted && styles.badgeTextContacted,
+                isInProgress && styles.badgeTextProgress,
+              ]}
+            >
+              {item.status}
+            </Text>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.infoRow}>
-        <Phone color="#34d399" size={14} />
-        <Text style={styles.phone}>{item.phone}</Text>
-      </View>
-
-      {!!item.companyName && (
-        <View style={styles.infoRow}>
-          <Building color="#94a3b8" size={14} />
-          <Text style={styles.company}>{item.companyName} {item.city ? `(${item.city})` : ''}</Text>
+        <View style={styles.detailsRow}>
+          <View style={styles.infoItem}>
+            <Phone color={colors.textSecondary} size={13} />
+            <Text style={styles.infoText}>{item.phone}</Text>
+          </View>
+          {!!item.city && (
+            <Text style={styles.cityText}>• {item.city}</Text>
+          )}
         </View>
-      )}
 
-      {!!item.product && (
-        <Text style={styles.productTag}>Interested Product: {item.product}</Text>
-      )}
+        {!!item.product && (
+          <Text style={styles.productTag}>Product: {item.product}</Text>
+        )}
 
-      <Text style={styles.message} numberOfLines={2}>
-        "{item.message}"
-      </Text>
+        <Text style={styles.message} numberOfLines={2}>
+          "{item.message}"
+        </Text>
 
-      <View style={styles.cardFooter}>
-        <View style={styles.dateRow}>
-          <Clock color="#64748b" size={12} />
-          <Text style={styles.dateText}>{new Date(item.createdAt).toLocaleDateString()}</Text>
+        <View style={styles.cardFooter}>
+          <View style={styles.dateRow}>
+            <Clock color={colors.textMuted} size={12} />
+            <Text style={styles.dateText}>
+              {new Date(item.createdAt).toLocaleDateString()}
+            </Text>
+          </View>
+          <ChevronRight color={colors.textMuted} size={14} />
         </View>
-        <ChevronRight color="#64748b" size={16} />
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
-      {/* Top Header */}
-      <View style={styles.topHeader}>
-        <Text style={styles.headerTitle}>Customer Enquiries</Text>
-        <Text style={styles.headerSubtitle}>Trade Enquiries & Bulk Leads</Text>
-      </View>
+      <AppHeader
+        title="Leads & Enquiries"
+        subtitle={`${enquiries.length} received`}
+      />
 
-      {/* Status Filter Pills */}
-      <View style={styles.pillsContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillsScroll}>
-          {STATUS_OPTIONS.map((opt) => (
-            <TouchableOpacity
-              key={opt.value}
-              style={[styles.pill, selectedStatus === opt.value && styles.pillActive]}
-              onPress={() => setSelectedStatus(opt.value)}
-            >
-              <Text style={[styles.pillText, selectedStatus === opt.value && styles.pillTextActive]}>
-                {opt.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+      {/* Status Filter Horizontal Pills */}
+      <View style={styles.pillsWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.pillsScroll}
+        >
+          {STATUS_OPTIONS.map((opt) => {
+            const active = selectedStatus === opt.value;
+            return (
+              <TouchableOpacity
+                key={opt.value}
+                style={[styles.pill, active && styles.pillActive]}
+                onPress={() => setSelectedStatus(opt.value)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.pillText, active && styles.pillTextActive]}>
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </View>
 
       {loading ? (
         <View style={styles.loadingCenter}>
-          <ActivityIndicator size="large" color="#10b981" />
+          <ActivityIndicator size="large" color={colors.emerald} />
         </View>
       ) : (
         <FlatList
           data={enquiries}
           keyExtractor={(item) => item.id}
           renderItem={renderEnquiryItem}
-          contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10b981" />}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: 80 + insets.bottom },
+          ]}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.emerald}
+              colors={[colors.emerald]}
+            />
+          }
+          showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Inbox color="#475569" size={48} />
-              <Text style={styles.emptyTitle}>No Enquiries Found</Text>
-              <Text style={styles.emptySubtitle}>No customer leads matched the selected status filter.</Text>
+              <Inbox color={colors.textMuted} size={40} />
+              <Text style={styles.emptyTitle}>No Leads Found</Text>
+              <Text style={styles.emptySubtitle}>
+                No customer inquiries match this filter.
+              </Text>
             </View>
           }
         />
@@ -144,50 +192,34 @@ export const EnquiriesScreen: React.FC<{ navigation: any }> = ({ navigation }) =
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.background,
   },
-  topHeader: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: '#ffffff',
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: '#94a3b8',
-    marginTop: 2,
-  },
-  pillsContainer: {
-    marginBottom: 8,
+  pillsWrapper: {
+    paddingVertical: spacing.sm,
   },
   pillsScroll: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 8,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
   },
   pill: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
-    backgroundColor: '#1e293b',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
   },
   pillActive: {
-    backgroundColor: '#10b981',
-    borderColor: '#10b981',
+    backgroundColor: colors.emeraldSubtle,
+    borderColor: 'rgba(16, 185, 129, 0.4)',
   },
   pillText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#94a3b8',
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
   },
   pillTextActive: {
-    color: '#ffffff',
+    color: colors.emerald,
   },
   loadingCenter: {
     flex: 1,
@@ -195,79 +227,104 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    padding: 16,
-    gap: 12,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xs,
   },
   card: {
-    backgroundColor: '#1e293b',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
+    marginBottom: spacing.sm,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   name: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    flex: 1,
+    marginRight: spacing.sm,
   },
   badge: {
     paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+    backgroundColor: 'rgba(148, 163, 184, 0.1)',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   badgeNew: {
-    backgroundColor: '#9f1239',
+    backgroundColor: colors.emeraldSubtle,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
   },
-  badgeDefault: {
-    backgroundColor: '#334155',
+  badgeContacted: {
+    backgroundColor: colors.blueSubtle,
+    borderColor: 'rgba(59, 130, 246, 0.3)',
+  },
+  badgeProgress: {
+    backgroundColor: colors.goldSubtle,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
   },
   badgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#ffffff',
+    fontSize: 9,
+    fontWeight: '700',
+    color: colors.textSecondary,
   },
-  infoRow: {
+  badgeTextNew: {
+    color: colors.emerald,
+  },
+  badgeTextContacted: {
+    color: colors.blue,
+  },
+  badgeTextProgress: {
+    color: colors.gold,
+  },
+  detailsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     marginBottom: 4,
   },
-  phone: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#34d399',
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
-  company: {
+  infoText: {
     fontSize: 12,
-    color: '#94a3b8',
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  cityText: {
+    fontSize: 12,
+    color: colors.textMuted,
   },
   productTag: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#38bdf8',
-    marginTop: 4,
-    marginBottom: 4,
+    color: colors.gold,
+    fontWeight: '600',
+    marginTop: 2,
   },
   message: {
-    fontSize: 13,
-    color: '#cbd5e1',
-    fontStyle: 'italic',
+    fontSize: 12,
+    color: colors.textSecondary,
     marginTop: 4,
+    lineHeight: 16,
   },
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 12,
-    paddingTop: 10,
+    marginTop: spacing.sm,
+    paddingTop: spacing.xs,
     borderTopWidth: 1,
-    borderTopColor: '#334155',
+    borderTopColor: 'rgba(255, 255, 255, 0.04)',
   },
   dateRow: {
     flexDirection: 'row',
@@ -275,24 +332,22 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   dateText: {
-    fontSize: 11,
-    color: '#64748b',
-    fontWeight: '600',
+    fontSize: 10,
+    color: colors.textMuted,
   },
   emptyContainer: {
     alignItems: 'center',
     paddingVertical: 48,
   },
   emptyTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#ffffff',
-    marginTop: 12,
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginTop: spacing.md,
   },
   emptySubtitle: {
     fontSize: 12,
-    color: '#64748b',
-    textAlign: 'center',
+    color: colors.textMuted,
     marginTop: 4,
   },
 });

@@ -11,10 +11,13 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
-import { Lock, Mail, ShieldCheck } from 'lucide-react-native';
+import { Lock, Mail, ShieldCheck, AlertCircle } from 'lucide-react-native';
+import { colors, spacing, borderRadius } from '../theme/colors';
 
 export const LoginScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -44,26 +47,37 @@ export const LoginScreen: React.FC = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        {/* Brand Header */}
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: Math.max(insets.top + 20, 48),
+            paddingBottom: Math.max(insets.bottom + 24, 32),
+          },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Compact, Balanced Brand Header */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <Image
               source={require('../../assets/icon.png')}
               style={styles.logo}
-              defaultSource={require('../../assets/icon.png')}
+              resizeMode="contain"
             />
           </View>
           <Text style={styles.title}>Mehak Admin</Text>
-          <Text style={styles.subtitle}>Hari Har Industries — Mobile Admin</Text>
+          <Text style={styles.subtitle}>Hari Har Industries — Mobile Portal</Text>
         </View>
 
         {/* Card Form */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Administrator Sign In</Text>
+          <Text style={styles.cardTitle}>Sign In</Text>
 
           {!!error && (
             <View style={styles.errorContainer}>
+              <AlertCircle color={colors.dangerLight} size={16} />
               <Text style={styles.errorText}>{error}</Text>
             </View>
           )}
@@ -71,11 +85,11 @@ export const LoginScreen: React.FC = () => {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Email Address</Text>
             <View style={styles.inputWrapper}>
-              <Mail color="#64748b" size={20} style={styles.inputIcon} />
+              <Mail color={colors.textSecondary} size={18} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="piyushverma282005@gmail.com"
-                placeholderTextColor="#64748b"
+                placeholderTextColor={colors.textPlaceholder}
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -87,11 +101,11 @@ export const LoginScreen: React.FC = () => {
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Password</Text>
             <View style={styles.inputWrapper}>
-              <Lock color="#64748b" size={20} style={styles.inputIcon} />
+              <Lock color={colors.textSecondary} size={18} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
                 placeholder="••••••••••••"
-                placeholderTextColor="#64748b"
+                placeholderTextColor={colors.textPlaceholder}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -106,17 +120,17 @@ export const LoginScreen: React.FC = () => {
             activeOpacity={0.8}
           >
             {loading ? (
-              <ActivityIndicator color="#ffffff" />
+              <ActivityIndicator color="#ffffff" size="small" />
             ) : (
-              <Text style={styles.buttonText}>Sign In to Mobile Admin</Text>
+              <Text style={styles.buttonText}>Sign In</Text>
             )}
           </TouchableOpacity>
         </View>
 
-        {/* Security Footer */}
+        {/* Security Notice */}
         <View style={styles.footer}>
-          <ShieldCheck color="#64748b" size={16} />
-          <Text style={styles.footerText}>Secure System Administration — Authorized Access Only</Text>
+          <ShieldCheck color={colors.textMuted} size={14} />
+          <Text style={styles.footerText}>Authorized Access Only</Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -126,140 +140,129 @@ export const LoginScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.background,
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 24,
+    paddingHorizontal: spacing.xl,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   logoContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 20,
+    width: 52,
+    height: 52,
+    borderRadius: borderRadius.md,
     backgroundColor: '#000000',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#334155',
-    marginBottom: 16,
+    borderColor: colors.border,
+    marginBottom: 12,
   },
   logo: {
-    width: 48,
-    height: 48,
-    resizeMode: 'contain',
+    width: 36,
+    height: 36,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#ffffff',
-    letterSpacing: -0.5,
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    letterSpacing: -0.4,
   },
   subtitle: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#34d399',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginTop: 4,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    marginTop: 3,
   },
   card: {
-    backgroundColor: '#1e293b',
-    borderRadius: 24,
-    padding: 24,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.xl,
     borderWidth: 1,
-    borderColor: '#334155',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    borderColor: colors.border,
   },
   cardTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#ffffff',
-    marginBottom: 20,
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: spacing.lg,
   },
   errorContainer: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.dangerSubtle,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.4)',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderRadius: borderRadius.sm,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+    gap: spacing.sm,
   },
   errorText: {
-    color: '#f87171',
-    fontSize: 13,
-    fontWeight: '600',
-    textAlign: 'center',
+    color: colors.dangerLight,
+    fontSize: 12,
+    fontWeight: '500',
+    flex: 1,
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
   label: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#94a3b8',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 8,
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginBottom: 6,
+    letterSpacing: 0.2,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#334155',
-    borderRadius: 14,
-    paddingHorizontal: 14,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
   },
   inputIcon: {
-    marginRight: 10,
+    marginRight: spacing.sm,
   },
   input: {
     flex: 1,
-    height: 48,
-    color: '#ffffff',
+    height: 44,
+    color: colors.textPrimary,
     fontSize: 14,
-    fontWeight: '600',
   },
   button: {
-    backgroundColor: '#10b981',
-    height: 52,
-    borderRadius: 14,
+    backgroundColor: colors.emerald,
+    height: 46,
+    borderRadius: borderRadius.md,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
-    shadowColor: '#10b981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    marginTop: spacing.md,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
     color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 32,
-    gap: 8,
+    marginTop: 24,
+    gap: 6,
   },
   footerText: {
     fontSize: 11,
-    color: '#64748b',
-    fontWeight: '600',
+    color: colors.textMuted,
+    fontWeight: '500',
   },
 });

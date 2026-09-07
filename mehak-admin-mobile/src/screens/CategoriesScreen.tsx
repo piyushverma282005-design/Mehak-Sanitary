@@ -10,12 +10,18 @@ import {
   Alert,
   Modal,
   RefreshControl,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { categoriesService } from '../services/categories';
 import { Category } from '../types';
+import { AppHeader } from '../components/AppHeader';
+import { colors, spacing, borderRadius } from '../theme/colors';
 import { FolderTree, Plus, Trash2, Edit3, X, Check } from 'lucide-react-native';
 
 export const CategoriesScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -63,7 +69,7 @@ export const CategoriesScreen: React.FC = () => {
 
   const handleSaveCategory = async () => {
     if (!name.trim()) {
-      Alert.alert('Validation Error', 'Category name is required.');
+      Alert.alert('Validation', 'Category name cannot be empty.');
       return;
     }
 
@@ -85,8 +91,8 @@ export const CategoriesScreen: React.FC = () => {
 
   const handleDeleteCategory = (cat: Category) => {
     Alert.alert(
-      'Confirm Category Deletion',
-      `Are you sure you want to delete category "${cat.name}"? Products under this category will be removed.`,
+      'Confirm Deletion',
+      `Delete category "${cat.name}"? Products under this category will be detached.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -110,24 +116,38 @@ export const CategoriesScreen: React.FC = () => {
   const renderCategoryItem = ({ item }: { item: Category }) => (
     <View style={styles.categoryCard}>
       <View style={styles.iconContainer}>
-        <FolderTree color="#10b981" size={24} />
+        <FolderTree color={colors.emerald} size={20} />
       </View>
 
       <View style={styles.info}>
         <Text style={styles.catName}>{item.name}</Text>
-        <Text style={styles.catSlug}>slug: /{item.slug}</Text>
-        {!!item.description && <Text style={styles.catDesc}>{item.description}</Text>}
+        <Text style={styles.catSlug}>/{item.slug}</Text>
+        {!!item.description && (
+          <Text style={styles.catDesc} numberOfLines={2}>
+            {item.description}
+          </Text>
+        )}
         {item._count && (
-          <Text style={styles.productCount}>{item._count.products} Associated Products</Text>
+          <Text style={styles.productCount}>
+            {item._count.products} products attached
+          </Text>
         )}
       </View>
 
       <View style={styles.actionColumn}>
-        <TouchableOpacity style={styles.editButton} onPress={() => openEditModal(item)}>
-          <Edit3 color="#ffffff" size={16} />
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => openEditModal(item)}
+          activeOpacity={0.7}
+        >
+          <Edit3 color={colors.textSecondary} size={15} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteCategory(item)}>
-          <Trash2 color="#ffffff" size={16} />
+        <TouchableOpacity
+          style={[styles.actionButton, styles.deleteButton]}
+          onPress={() => handleDeleteCategory(item)}
+          activeOpacity={0.7}
+        >
+          <Trash2 color={colors.dangerLight} size={15} />
         </TouchableOpacity>
       </View>
     </View>
@@ -135,81 +155,122 @@ export const CategoriesScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Top Header */}
-      <View style={styles.topHeader}>
-        <View>
-          <Text style={styles.headerTitle}>Categories</Text>
-          <Text style={styles.headerSubtitle}>Product Categories & Line Items</Text>
-        </View>
-        <TouchableOpacity style={styles.addButton} onPress={openAddModal} activeOpacity={0.8}>
-          <Plus color="#ffffff" size={20} />
-        </TouchableOpacity>
-      </View>
+      <AppHeader
+        title="Categories"
+        subtitle={`${categories.length} classifications`}
+        rightAction={
+          <TouchableOpacity
+            style={styles.newButton}
+            onPress={openAddModal}
+            activeOpacity={0.8}
+          >
+            <Plus color="#ffffff" size={16} />
+            <Text style={styles.newButtonText}>New</Text>
+          </TouchableOpacity>
+        }
+      />
 
       {loading ? (
         <View style={styles.loadingCenter}>
-          <ActivityIndicator size="large" color="#10b981" />
+          <ActivityIndicator size="large" color={colors.emerald} />
         </View>
       ) : (
         <FlatList
           data={categories}
           keyExtractor={(item) => item.id}
           renderItem={renderCategoryItem}
-          contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10b981" />}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: 80 + insets.bottom },
+          ]}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.emerald}
+              colors={[colors.emerald]}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <FolderTree color={colors.textMuted} size={40} />
+              <Text style={styles.emptyTitle}>No Categories Yet</Text>
+              <Text style={styles.emptySubtitle}>
+                Add your first sanitary hardware category above.
+              </Text>
+            </View>
+          }
         />
       )}
 
-      {/* Add / Edit Category Modal */}
-      <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+      {/* Edit/Add Category Modal */}
+      <Modal visible={modalVisible} transparent animationType="fade">
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {editingCategory ? 'Edit Category' : 'Add New Category'}
+                {editingCategory ? 'Edit Category' : 'New Category'}
               </Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <X color="#94a3b8" size={24} />
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <X color={colors.textSecondary} size={18} />
               </TouchableOpacity>
             </View>
 
-            <View style={styles.inputGroup}>
+            <View style={styles.formGroup}>
               <Text style={styles.label}>Category Name *</Text>
               <TextInput
                 style={styles.input}
-                placeholder="e.g. Waste Couplings"
-                placeholderTextColor="#64748b"
+                placeholder="e.g. Health Faucets"
+                placeholderTextColor={colors.textPlaceholder}
                 value={name}
                 onChangeText={setName}
               />
             </View>
 
-            <View style={styles.inputGroup}>
+            <View style={styles.formGroup}>
               <Text style={styles.label}>Description</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
-                placeholder="Brief category summary..."
-                placeholderTextColor="#64748b"
-                multiline
-                numberOfLines={3}
+                placeholder="Short summary for catalogue..."
+                placeholderTextColor={colors.textPlaceholder}
                 value={description}
                 onChangeText={setDescription}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
               />
             </View>
 
-            <TouchableOpacity
-              style={[styles.saveModalButton, saving && styles.buttonDisabled]}
-              onPress={handleSaveCategory}
-              disabled={saving}
-            >
-              {saving ? (
-                <ActivityIndicator color="#ffffff" />
-              ) : (
-                <Text style={styles.saveModalButtonText}>Save Category</Text>
-              )}
-            </TouchableOpacity>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setModalVisible(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.confirmButton, saving && styles.buttonDisabled]}
+                onPress={handleSaveCategory}
+                disabled={saving}
+                activeOpacity={0.8}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#ffffff" size="small" />
+                ) : (
+                  <Text style={styles.confirmText}>Save</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -218,33 +279,21 @@ export const CategoriesScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.background,
   },
-  topHeader: {
+  newButton: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+    backgroundColor: colors.emerald,
+    paddingHorizontal: 10,
+    height: 32,
+    borderRadius: borderRadius.sm,
+    gap: 4,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '900',
+  newButtonText: {
     color: '#ffffff',
-  },
-  headerSubtitle: {
     fontSize: 12,
-    color: '#94a3b8',
-    marginTop: 2,
-  },
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: '#10b981',
-    justifyContent: 'center',
-    alignItems: 'center',
+    fontWeight: '700',
   },
   loadingCenter: {
     flex: 1,
@@ -252,133 +301,165 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    padding: 16,
-    gap: 12,
+    padding: spacing.lg,
   },
   categoryCard: {
     flexDirection: 'row',
-    backgroundColor: '#1e293b',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#334155',
     alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.sm,
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: '#0f172a',
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.emeraldSubtle,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#334155',
-    marginRight: 14,
+    borderColor: 'rgba(16, 185, 129, 0.2)',
   },
   info: {
     flex: 1,
+    marginLeft: spacing.md,
   },
   catName: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
   catSlug: {
     fontSize: 11,
-    color: '#10b981',
-    fontWeight: '600',
-    marginTop: 2,
+    color: colors.textMuted,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    marginTop: 1,
   },
   catDesc: {
-    fontSize: 12,
-    color: '#94a3b8',
-    marginTop: 4,
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
   productCount: {
     fontSize: 10,
-    fontWeight: '700',
-    color: '#64748b',
-    marginTop: 4,
+    fontWeight: '600',
+    color: colors.gold,
+    marginTop: 3,
   },
   actionColumn: {
-    gap: 8,
-    marginLeft: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginLeft: spacing.sm,
   },
-  editButton: {
+  actionButton: {
     width: 32,
     height: 32,
-    borderRadius: 8,
-    backgroundColor: '#3b82f6',
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.cardElevated,
+    borderWidth: 1,
+    borderColor: colors.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
   deleteButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: '#ef4444',
-    justifyContent: 'center',
+    backgroundColor: colors.dangerSubtle,
+    borderColor: 'rgba(239, 68, 68, 0.25)',
+  },
+  emptyContainer: {
     alignItems: 'center',
+    paddingVertical: 48,
+  },
+  emptyTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginTop: spacing.md,
+  },
+  emptySubtitle: {
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 4,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.8)',
-    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    justifyContent: 'center',
+    padding: spacing.xl,
   },
-  modalContent: {
-    backgroundColor: '#1e293b',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
+  modalCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.xl,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: spacing.lg,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
-  inputGroup: {
-    marginBottom: 16,
+  formGroup: {
+    marginBottom: spacing.md,
   },
   label: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#94a3b8',
-    textTransform: 'uppercase',
-    marginBottom: 8,
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginBottom: 6,
   },
   input: {
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#334155',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    color: '#ffffff',
-    fontSize: 14,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    height: 42,
+    color: colors.textPrimary,
+    fontSize: 13,
   },
   textArea: {
-    minHeight: 80,
+    height: 70,
+    paddingTop: spacing.sm,
   },
-  saveModalButton: {
-    backgroundColor: '#10b981',
-    height: 48,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
   },
-  saveModalButtonText: {
+  cancelButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.cardElevated,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  cancelText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  confirmButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.emerald,
+  },
+  confirmText: {
+    fontSize: 12,
+    fontWeight: '700',
     color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '800',
   },
   buttonDisabled: {
     opacity: 0.6,

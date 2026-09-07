@@ -5,44 +5,55 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
+  Linking,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { enquiriesService } from '../services/enquiries';
 import { Enquiry, EnquiryStatus } from '../types';
-import { ArrowLeft, Phone, Mail, MapPin, Building, Package, Clock, Trash2, CheckCircle2 } from 'lucide-react-native';
+import { AppHeader } from '../components/AppHeader';
+import { colors, spacing, borderRadius } from '../theme/colors';
+import { Phone, Mail, MapPin, Building, Package, Trash2, CheckCircle2 } from 'lucide-react-native';
 
-const STATUS_LIST: EnquiryStatus[] = ['NEW', 'CONTACTED', 'IN_PROGRESS', 'COMPLETED', 'ARCHIVED'];
+const ALL_STATUSES: EnquiryStatus[] = ['NEW', 'CONTACTED', 'IN_PROGRESS', 'COMPLETED', 'ARCHIVED'];
 
-export const EnquiryDetailScreen: React.FC<{ navigation: any; route: any }> = ({ navigation, route }) => {
-  const [enquiry, setEnquiry] = useState<Enquiry>(route.params.enquiry);
+export const EnquiryDetailScreen: React.FC<{ route: any; navigation: any }> = ({
+  route,
+  navigation,
+}) => {
+  const insets = useSafeAreaInsets();
+  const initialEnquiry: Enquiry = route.params.enquiry;
+  const [enquiry, setEnquiry] = useState<Enquiry>(initialEnquiry);
+  const [updating, setUpdating] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleUpdateStatus = async (newStatus: EnquiryStatus) => {
-    setLoading(true);
+  const handleStatusChange = async (newStatus: EnquiryStatus) => {
+    if (newStatus === enquiry.status) return;
+
+    setUpdating(true);
     try {
       const updated = await enquiriesService.updateStatus(enquiry.id, newStatus);
       setEnquiry(updated);
-      Alert.alert('Status Updated', `Enquiry status changed to ${newStatus}`);
     } catch (err: any) {
-      Alert.alert('Update Error', err?.message || 'Failed to update status.');
+      Alert.alert('Status Error', err?.message || 'Failed to update enquiry status.');
     } finally {
-      setLoading(false);
+      setUpdating(false);
     }
   };
 
   const handleDelete = () => {
     Alert.alert(
-      'Delete Enquiry',
-      `Are you sure you want to delete this enquiry from ${enquiry.name}?`,
+      'Confirm Deletion',
+      `Delete enquiry from "${enquiry.name}"? This action cannot be undone.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
+            setLoading(true);
             try {
-              setLoading(true);
               await enquiriesService.deleteEnquiry(enquiry.id);
               navigation.goBack();
             } catch (err: any) {
@@ -56,156 +67,176 @@ export const EnquiryDetailScreen: React.FC<{ navigation: any; route: any }> = ({
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Top Bar */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <ArrowLeft color="#ffffff" size={20} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Enquiry Details</Text>
-        <TouchableOpacity style={styles.deleteHeaderButton} onPress={handleDelete}>
-          <Trash2 color="#ef4444" size={20} />
-        </TouchableOpacity>
-      </View>
+    <View style={styles.container}>
+      <AppHeader
+        title="Lead Details"
+        subtitle={enquiry.name}
+        onBack={() => navigation.goBack()}
+        rightAction={
+          <TouchableOpacity
+            style={styles.deleteHeaderButton}
+            onPress={handleDelete}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Trash2 color={colors.dangerLight} size={18} />
+          </TouchableOpacity>
+        }
+      />
 
-      {/* Main Info Card */}
-      <View style={styles.card}>
-        <View style={styles.nameRow}>
-          <Text style={styles.customerName}>{enquiry.name}</Text>
-          <View style={[styles.badge, enquiry.status === 'NEW' ? styles.badgeNew : styles.badgeDefault]}>
-            <Text style={styles.badgeText}>{enquiry.status}</Text>
-          </View>
+      {loading ? (
+        <View style={styles.loadingCenter}>
+          <ActivityIndicator size="large" color={colors.emerald} />
         </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.detailRow}>
-          <Phone color="#34d399" size={18} />
-          <Text style={styles.detailValue}>{enquiry.phone}</Text>
-        </View>
-
-        {!!enquiry.email && (
-          <View style={styles.detailRow}>
-            <Mail color="#94a3b8" size={18} />
-            <Text style={styles.detailValue}>{enquiry.email}</Text>
-          </View>
-        )}
-
-        {!!enquiry.city && (
-          <View style={styles.detailRow}>
-            <MapPin color="#94a3b8" size={18} />
-            <Text style={styles.detailValue}>{enquiry.city}</Text>
-          </View>
-        )}
-
-        {!!enquiry.companyName && (
-          <View style={styles.detailRow}>
-            <Building color="#94a3b8" size={18} />
-            <Text style={styles.detailValue}>{enquiry.companyName} {enquiry.businessType ? `(${enquiry.businessType})` : ''}</Text>
-          </View>
-        )}
-
-        {!!enquiry.product && (
-          <View style={styles.detailRow}>
-            <Package color="#38bdf8" size={18} />
-            <Text style={styles.detailValue}>
-              {enquiry.product} {enquiry.quantity ? `(Qty: ${enquiry.quantity})` : ''}
-            </Text>
-          </View>
-        )}
-
-        <View style={styles.detailRow}>
-          <Clock color="#64748b" size={18} />
-          <Text style={styles.detailSubtext}>Received: {new Date(enquiry.createdAt).toLocaleString()}</Text>
-        </View>
-      </View>
-
-      {/* Message Card */}
-      <View style={styles.card}>
-        <Text style={styles.cardSectionTitle}>Message / Requirements</Text>
-        <Text style={styles.messageBody}>{enquiry.message}</Text>
-      </View>
-
-      {/* Status Action Buttons */}
-      <View style={styles.card}>
-        <Text style={styles.cardSectionTitle}>Update Status</Text>
-
-        {loading ? (
-          <ActivityIndicator color="#10b981" style={{ marginVertical: 12 }} />
-        ) : (
-          <View style={styles.statusButtonsGrid}>
-            {STATUS_LIST.map((st) => (
-              <TouchableOpacity
-                key={st}
-                style={[
-                  styles.statusOptionButton,
-                  enquiry.status === st && styles.statusOptionActive,
-                ]}
-                onPress={() => handleUpdateStatus(st)}
-              >
-                <Text
-                  style={[
-                    styles.statusOptionText,
-                    enquiry.status === st && styles.statusOptionTextActive,
-                  ]}
-                >
-                  {st}
+      ) : (
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: Math.max(insets.bottom + 40, 48) },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Main Info Card */}
+          <View style={styles.card}>
+            <View style={styles.nameRow}>
+              <Text style={styles.customerName}>{enquiry.name}</Text>
+              <View style={[styles.badge, enquiry.status === 'NEW' ? styles.badgeNew : styles.badgeDefault]}>
+                <Text style={[styles.badgeText, enquiry.status === 'NEW' ? styles.badgeTextNew : styles.badgeTextDefault]}>
+                  {enquiry.status}
                 </Text>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <TouchableOpacity
+              style={styles.detailRow}
+              onPress={() => Linking.openURL(`tel:${enquiry.phone}`)}
+              activeOpacity={0.7}
+            >
+              <Phone color={colors.emerald} size={16} />
+              <Text style={[styles.detailValue, { color: colors.emerald }]}>
+                {enquiry.phone}
+              </Text>
+            </TouchableOpacity>
+
+            {!!enquiry.email && (
+              <TouchableOpacity
+                style={styles.detailRow}
+                onPress={() => Linking.openURL(`mailto:${enquiry.email}`)}
+                activeOpacity={0.7}
+              >
+                <Mail color={colors.textSecondary} size={16} />
+                <Text style={styles.detailValue}>{enquiry.email}</Text>
               </TouchableOpacity>
-            ))}
+            )}
+
+            {!!enquiry.city && (
+              <View style={styles.detailRow}>
+                <MapPin color={colors.textSecondary} size={16} />
+                <Text style={styles.detailValue}>{enquiry.city}</Text>
+              </View>
+            )}
+
+            {!!enquiry.companyName && (
+              <View style={styles.detailRow}>
+                <Building color={colors.textSecondary} size={16} />
+                <Text style={styles.detailValue}>
+                  {enquiry.companyName} {enquiry.businessType ? `(${enquiry.businessType})` : ''}
+                </Text>
+              </View>
+            )}
           </View>
-        )}
-      </View>
-    </ScrollView>
+
+          {/* Product Requirement */}
+          {(!!enquiry.product || !!enquiry.quantity) && (
+            <View style={styles.card}>
+              <Text style={styles.sectionTitle}>Product Interest</Text>
+              <View style={styles.detailRow}>
+                <Package color={colors.gold} size={16} />
+                <Text style={[styles.detailValue, { color: colors.gold, fontWeight: '700' }]}>
+                  {enquiry.product || 'General Requirement'}
+                </Text>
+              </View>
+              {!!enquiry.quantity && (
+                <Text style={styles.quantityText}>Estimated Quantity: {enquiry.quantity}</Text>
+              )}
+            </View>
+          )}
+
+          {/* Customer Message */}
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Message / Notes</Text>
+            <Text style={styles.messageText}>{enquiry.message}</Text>
+          </View>
+
+          {/* Status Update Card */}
+          <View style={styles.card}>
+            <View style={styles.statusHeaderRow}>
+              <Text style={styles.sectionTitle}>Update Status</Text>
+              {updating && <ActivityIndicator size="small" color={colors.emerald} />}
+            </View>
+
+            <View style={styles.statusOptionsContainer}>
+              {ALL_STATUSES.map((st) => {
+                const isSelected = enquiry.status === st;
+                return (
+                  <TouchableOpacity
+                    key={st}
+                    style={[styles.statusOption, isSelected && styles.statusOptionActive]}
+                    onPress={() => handleStatusChange(st)}
+                    disabled={updating}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.statusOptionText, isSelected && styles.statusOptionTextActive]}>
+                      {st}
+                    </Text>
+                    {isSelected && <CheckCircle2 color={colors.emerald} size={14} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        </ScrollView>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.background,
+  },
+  scroll: {
+    flex: 1,
   },
   content: {
-    padding: 20,
-    gap: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#1e293b',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#334155',
+    padding: spacing.lg,
   },
   deleteHeaderButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    width: 34,
+    height: 34,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.dangerSubtle,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.25)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#ffffff',
+  loadingCenter: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   card: {
-    backgroundColor: '#1e293b',
-    borderRadius: 20,
-    padding: 20,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
+    marginBottom: spacing.md,
   },
   nameRow: {
     flexDirection: 'row',
@@ -213,82 +244,100 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   customerName: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    flex: 1,
+    marginRight: spacing.sm,
   },
   badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: borderRadius.full,
   },
   badgeNew: {
-    backgroundColor: '#9f1239',
+    backgroundColor: colors.emeraldSubtle,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
   },
   badgeDefault: {
-    backgroundColor: '#334155',
+    backgroundColor: 'rgba(148, 163, 184, 0.1)',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   badgeText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  badgeTextNew: {
+    color: colors.emerald,
+  },
+  badgeTextDefault: {
+    color: colors.textSecondary,
   },
   divider: {
     height: 1,
-    backgroundColor: '#334155',
-    marginVertical: 14,
+    backgroundColor: colors.border,
+    marginVertical: spacing.md,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 10,
+    gap: spacing.md,
+    marginBottom: spacing.sm,
   },
   detailValue: {
-    fontSize: 14,
+    fontSize: 13,
+    color: colors.textPrimary,
+    fontWeight: '500',
+  },
+  sectionTitle: {
+    fontSize: 13,
     fontWeight: '700',
-    color: '#ffffff',
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
   },
-  detailSubtext: {
-    fontSize: 12,
-    color: '#94a3b8',
+  quantityText: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 4,
   },
-  cardSectionTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#94a3b8',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 12,
+  messageText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 18,
   },
-  messageBody: {
-    fontSize: 14,
-    color: '#cbd5e1',
-    lineHeight: 22,
-  },
-  statusButtonsGrid: {
+  statusHeaderRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
   },
-  statusOptionButton: {
-    paddingHorizontal: 14,
+  statusOptionsContainer: {
+    gap: spacing.sm,
+  },
+  statusOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
     paddingVertical: 10,
-    borderRadius: 12,
-    backgroundColor: '#0f172a',
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.inputBg,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
   },
   statusOptionActive: {
-    backgroundColor: '#10b981',
-    borderColor: '#10b981',
+    backgroundColor: colors.emeraldSubtle,
+    borderColor: 'rgba(16, 185, 129, 0.4)',
   },
   statusOptionText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#94a3b8',
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
   statusOptionTextActive: {
-    color: '#ffffff',
+    color: colors.emerald,
+    fontWeight: '700',
   },
 });

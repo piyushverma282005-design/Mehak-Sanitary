@@ -7,13 +7,25 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  FlatList,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { productsService } from '../services/products';
 import { categoriesService } from '../services/categories';
 import { enquiriesService } from '../services/enquiries';
 import { Enquiry, Product } from '../types';
-import { Package, FolderTree, Inbox, Clock, CheckCircle2, RefreshCw, AlertCircle } from 'lucide-react-native';
+import { AppHeader } from '../components/AppHeader';
+import { colors, spacing, borderRadius } from '../theme/colors';
+import {
+  Package,
+  FolderTree,
+  Inbox,
+  Clock,
+  CheckCircle2,
+  RefreshCw,
+  AlertCircle,
+  Plus,
+  ChevronRight,
+} from 'lucide-react-native';
 
 interface DashboardMetrics {
   totalProducts: number;
@@ -27,6 +39,7 @@ interface DashboardMetrics {
 }
 
 export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -35,7 +48,6 @@ export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) =
   const fetchMetrics = async () => {
     try {
       setError('');
-      console.log('[DashboardScreen] Fetching dashboard metrics...');
       const [productsRes, categoriesRes, enquiriesRes] = await Promise.allSettled([
         productsService.getProducts(),
         categoriesService.getCategories(),
@@ -92,299 +104,410 @@ export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) =
     fetchMetrics();
   }, []);
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#10b981" />
-        <Text style={styles.loadingText}>Fetching Real-time Metrics...</Text>
-      </View>
-    );
-  }
-
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10b981" />}
-    >
-      {/* Header Title */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Business Overview</Text>
-        <Text style={styles.headerSubtitle}>Mehak Sanitary Hardware Operations</Text>
-      </View>
-
-      {!!error && (
-        <View style={styles.errorCard}>
-          <AlertCircle color="#f87171" size={20} />
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      )}
-
-      {/* Metric Cards Grid */}
-      <View style={styles.grid}>
-        {/* Card 1: New Leads */}
-        <TouchableOpacity
-          style={[styles.card, { backgroundColor: '#881337', borderColor: '#f43f5e' }]}
-          onPress={() => navigation.navigate('Enquiries')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.cardHeader}>
-            <Clock color="#ffffff" size={24} />
-            <Text style={styles.cardValue}>{metrics?.newEnquiries || 0}</Text>
-          </View>
-          <Text style={styles.cardLabel}>New Enquiries</Text>
-          <Text style={styles.cardSubtext}>Action Required</Text>
-        </TouchableOpacity>
-
-        {/* Card 2: Total Enquiries */}
-        <TouchableOpacity
-          style={[styles.card, { backgroundColor: '#1e1b4b', borderColor: '#6366f1' }]}
-          onPress={() => navigation.navigate('Enquiries')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.cardHeader}>
-            <Inbox color="#ffffff" size={24} />
-            <Text style={styles.cardValue}>{metrics?.totalEnquiries || 0}</Text>
-          </View>
-          <Text style={styles.cardLabel}>Total Leads</Text>
-          <Text style={styles.cardSubtext}>All Inquiries</Text>
-        </TouchableOpacity>
-
-        {/* Card 3: Products */}
-        <TouchableOpacity
-          style={[styles.card, { backgroundColor: '#0f172a', borderColor: '#334155' }]}
-          onPress={() => navigation.navigate('Products')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.cardHeader}>
-            <Package color="#34d399" size={24} />
-            <Text style={styles.cardValue}>{metrics?.totalProducts || 0}</Text>
-          </View>
-          <Text style={styles.cardLabel}>Catalogue Items</Text>
-          <Text style={styles.cardSubtext}>Live Products</Text>
-        </TouchableOpacity>
-
-        {/* Card 4: Categories */}
-        <TouchableOpacity
-          style={[styles.card, { backgroundColor: '#451a03', borderColor: '#f97316' }]}
-          onPress={() => navigation.navigate('Categories')}
-          activeOpacity={0.8}
-        >
-          <View style={styles.cardHeader}>
-            <FolderTree color="#ffffff" size={24} />
-            <Text style={styles.cardValue}>{metrics?.totalCategories || 0}</Text>
-          </View>
-          <Text style={styles.cardLabel}>Product Categories</Text>
-          <Text style={styles.cardSubtext}>Core Lines</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Section: Recent Enquiries */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Customer Leads</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Enquiries')}>
-            <Text style={styles.seeAll}>View All</Text>
+    <View style={styles.container}>
+      <AppHeader
+        title="Mehak Admin"
+        subtitle="Operations & Overview"
+        showLogo
+        rightAction={
+          <TouchableOpacity
+            onPress={onRefresh}
+            style={styles.headerIconButton}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <RefreshCw color={colors.textSecondary} size={16} />
           </TouchableOpacity>
+        }
+      />
+
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.emerald} />
+          <Text style={styles.loadingText}>Fetching Real-time Metrics...</Text>
         </View>
+      ) : (
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: 80 + insets.bottom },
+          ]}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.emerald}
+              colors={[colors.emerald]}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+        >
+          {!!error && (
+            <View style={styles.errorCard}>
+              <AlertCircle color={colors.dangerLight} size={16} />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
 
-        {metrics?.recentEnquiries && metrics.recentEnquiries.length > 0 ? (
-          metrics.recentEnquiries.map((item) => (
+          {/* Metrics Grid */}
+          <View style={styles.grid}>
+            {/* Card 1: New Leads */}
             <TouchableOpacity
-              key={item.id}
-              style={styles.enquiryCard}
-              onPress={() => navigation.navigate('Enquiries', { screen: 'EnquiryDetail', params: { id: item.id } })}
-              activeOpacity={0.7}
+              style={styles.metricCard}
+              onPress={() => navigation.navigate('Enquiries')}
+              activeOpacity={0.75}
             >
-              <View style={styles.enquiryTop}>
-                <Text style={styles.enquiryName}>{item.name}</Text>
-                <View
-                  style={[
-                    styles.statusBadge,
-                    item.status === 'NEW' ? styles.statusNew : styles.statusOther,
-                  ]}
-                >
-                  <Text style={styles.statusText}>{item.status}</Text>
+              <View style={styles.metricCardHeader}>
+                <View style={[styles.iconBox, { backgroundColor: colors.goldSubtle }]}>
+                  <Clock color={colors.gold} size={18} />
                 </View>
+                <Text style={[styles.metricValue, { color: colors.gold }]}>
+                  {metrics?.newEnquiries || 0}
+                </Text>
               </View>
-
-              <Text style={styles.enquiryPhone}>📞 {item.phone}</Text>
-              {!!item.product && <Text style={styles.enquiryMeta}>Product: {item.product}</Text>}
-              <Text style={styles.enquiryMessage} numberOfLines={2}>
-                "{item.message}"
-              </Text>
+              <Text style={styles.metricLabel}>New Leads</Text>
+              <Text style={styles.metricSubtext}>Action needed</Text>
             </TouchableOpacity>
-          ))
-        ) : (
-          <Text style={styles.emptyText}>No recent customer enquiries found.</Text>
-        )}
-      </View>
-    </ScrollView>
+
+            {/* Card 2: Total Leads */}
+            <TouchableOpacity
+              style={styles.metricCard}
+              onPress={() => navigation.navigate('Enquiries')}
+              activeOpacity={0.75}
+            >
+              <View style={styles.metricCardHeader}>
+                <View style={[styles.iconBox, { backgroundColor: colors.blueSubtle }]}>
+                  <Inbox color={colors.blue} size={18} />
+                </View>
+                <Text style={styles.metricValue}>
+                  {metrics?.totalEnquiries || 0}
+                </Text>
+              </View>
+              <Text style={styles.metricLabel}>Total Leads</Text>
+              <Text style={styles.metricSubtext}>All inquiries</Text>
+            </TouchableOpacity>
+
+            {/* Card 3: Products */}
+            <TouchableOpacity
+              style={styles.metricCard}
+              onPress={() => navigation.navigate('Products')}
+              activeOpacity={0.75}
+            >
+              <View style={styles.metricCardHeader}>
+                <View style={[styles.iconBox, { backgroundColor: colors.emeraldSubtle }]}>
+                  <Package color={colors.emerald} size={18} />
+                </View>
+                <Text style={styles.metricValue}>
+                  {metrics?.totalProducts || 0}
+                </Text>
+              </View>
+              <Text style={styles.metricLabel}>Products</Text>
+              <Text style={styles.metricSubtext}>In catalogue</Text>
+            </TouchableOpacity>
+
+            {/* Card 4: Categories */}
+            <TouchableOpacity
+              style={styles.metricCard}
+              onPress={() => navigation.navigate('Categories')}
+              activeOpacity={0.75}
+            >
+              <View style={styles.metricCardHeader}>
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(168, 85, 247, 0.12)' }]}>
+                  <FolderTree color="#c084fc" size={18} />
+                </View>
+                <Text style={styles.metricValue}>
+                  {metrics?.totalCategories || 0}
+                </Text>
+              </View>
+              <Text style={styles.metricLabel}>Categories</Text>
+              <Text style={styles.metricSubtext}>Organized</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Quick Action Button */}
+          <TouchableOpacity
+            style={styles.quickAddButton}
+            onPress={() => navigation.navigate('Products', { screen: 'AddEditProduct' })}
+            activeOpacity={0.8}
+          >
+            <Plus color="#ffffff" size={18} />
+            <Text style={styles.quickAddText}>Add New Product</Text>
+          </TouchableOpacity>
+
+          {/* Section: Recent Leads */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Recent Customer Leads</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Enquiries')}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={styles.seeAll}>View All</Text>
+              </TouchableOpacity>
+            </View>
+
+            {metrics?.recentEnquiries && metrics.recentEnquiries.length > 0 ? (
+              metrics.recentEnquiries.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.leadCard}
+                  onPress={() =>
+                    navigation.navigate('Enquiries', {
+                      screen: 'EnquiryDetail',
+                      params: { enquiry: item },
+                    })
+                  }
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.leadTop}>
+                    <Text style={styles.leadName} numberOfLines={1}>
+                      {item.name}
+                    </Text>
+                    <View
+                      style={[
+                        styles.statusBadge,
+                        item.status === 'NEW' ? styles.statusNew : styles.statusDefault,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.statusText,
+                          item.status === 'NEW' ? styles.statusTextNew : styles.statusTextDefault,
+                        ]}
+                      >
+                        {item.status}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.leadPhone}>📞 {item.phone}</Text>
+                  {!!item.product && (
+                    <Text style={styles.leadProduct}>Product: {item.product}</Text>
+                  )}
+                  {!!item.message && (
+                    <Text style={styles.leadMessage} numberOfLines={2}>
+                      "{item.message}"
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.emptyCard}>
+                <Text style={styles.emptyText}>No recent customer leads found.</Text>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.background,
+  },
+  scroll: {
+    flex: 1,
   },
   content: {
-    padding: 16,
+    padding: spacing.lg,
+  },
+  headerIconButton: {
+    width: 34,
+    height: 34,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: spacing.xl,
   },
   loadingText: {
-    color: '#94a3b8',
-    marginTop: 12,
-    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: spacing.md,
+    fontSize: 13,
     fontWeight: '600',
-  },
-  header: {
-    marginBottom: 20,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: '#ffffff',
-    letterSpacing: -0.5,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    color: '#94a3b8',
-    fontWeight: '600',
-    marginTop: 2,
   },
   errorCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: colors.dangerSubtle,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.4)',
-    borderRadius: 14,
-    padding: 12,
-    marginBottom: 16,
-    gap: 10,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
   },
   errorText: {
-    color: '#f87171',
-    fontSize: 13,
-    fontWeight: '600',
+    color: colors.dangerLight,
+    fontSize: 12,
+    fontWeight: '500',
     flex: 1,
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 24,
+    gap: spacing.md,
+    marginBottom: spacing.md,
   },
-  card: {
+  metricCard: {
     width: '48%',
-    borderRadius: 20,
-    padding: 16,
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
     borderWidth: 1,
+    borderColor: colors.border,
   },
-  cardHeader: {
+  metricCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: spacing.sm,
   },
-  cardValue: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#ffffff',
+  iconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  cardLabel: {
-    fontSize: 13,
+  metricValue: {
+    fontSize: 22,
     fontWeight: '800',
-    color: '#ffffff',
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
   },
-  cardSubtext: {
+  metricLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  metricSubtext: {
     fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontWeight: '600',
+    color: colors.textSecondary,
     marginTop: 2,
   },
+  quickAddButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.emerald,
+    borderRadius: borderRadius.md,
+    height: 44,
+    gap: spacing.xs,
+    marginBottom: spacing.xl,
+  },
+  quickAddText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
+  },
   section: {
-    marginBottom: 24,
+    marginBottom: spacing.lg,
   },
   sectionHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 14,
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    letterSpacing: -0.2,
   },
   seeAll: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#10b981',
+    fontWeight: '600',
+    color: colors.emerald,
   },
-  enquiryCard: {
-    backgroundColor: '#1e293b',
-    borderRadius: 16,
-    padding: 16,
+  leadCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
     borderWidth: 1,
-    borderColor: '#334155',
-    marginBottom: 12,
+    borderColor: colors.border,
+    marginBottom: spacing.sm,
   },
-  enquiryTop: {
+  leadTop: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    justifyContent: 'space-between',
+    marginBottom: 4,
   },
-  enquiryName: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#ffffff',
+  leadName: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    flex: 1,
+    marginRight: spacing.sm,
   },
   statusBadge: {
     paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
   },
   statusNew: {
-    backgroundColor: '#9f1239',
+    backgroundColor: colors.emeraldSubtle,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
   },
-  statusOther: {
-    backgroundColor: '#334155',
+  statusDefault: {
+    backgroundColor: 'rgba(148, 163, 184, 0.1)',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   statusText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#ffffff',
-  },
-  enquiryPhone: {
-    fontSize: 12,
+    fontSize: 9,
     fontWeight: '700',
-    color: '#34d399',
-    marginBottom: 4,
   },
-  enquiryMeta: {
-    fontSize: 11,
-    color: '#94a3b8',
-    marginBottom: 4,
+  statusTextNew: {
+    color: colors.emerald,
   },
-  enquiryMessage: {
+  statusTextDefault: {
+    color: colors.textSecondary,
+  },
+  leadPhone: {
     fontSize: 12,
-    color: '#cbd5e1',
+    color: colors.textSecondary,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  leadProduct: {
+    fontSize: 11,
+    color: colors.gold,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  leadMessage: {
+    fontSize: 11,
+    color: colors.textMuted,
+    marginTop: 4,
     fontStyle: 'italic',
+  },
+  emptyCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.md,
+    padding: spacing.xl,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   emptyText: {
-    color: '#64748b',
-    fontSize: 13,
-    fontStyle: 'italic',
-    textAlign: 'center',
-    paddingVertical: 16,
+    fontSize: 12,
+    color: colors.textMuted,
   },
 });

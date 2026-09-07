@@ -12,12 +12,16 @@ import {
   RefreshControl,
   ScrollView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { productsService } from '../services/products';
 import { categoriesService } from '../services/categories';
 import { Product, Category } from '../types';
-import { Search, Plus, Trash2, Edit3, Package, Filter } from 'lucide-react-native';
+import { AppHeader } from '../components/AppHeader';
+import { colors, spacing, borderRadius } from '../theme/colors';
+import { Search, Plus, Trash2, Edit3, Package } from 'lucide-react-native';
 
 export const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -74,8 +78,8 @@ export const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
   const handleDeleteProduct = (product: Product) => {
     Alert.alert(
-      'Confirm Product Deletion',
-      `Are you sure you want to delete "${product.name}"? This action cannot be undone.`,
+      'Confirm Deletion',
+      `Delete "${product.name}"? This action cannot be undone.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -87,7 +91,7 @@ export const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
               await productsService.deleteProduct(product.id);
               await fetchProductsAndCategories();
             } catch (err: any) {
-              Alert.alert('Delete Error', err?.message || 'Failed to delete product.');
+              Alert.alert('Error', err?.message || 'Failed to delete product.');
               setLoading(false);
             }
           },
@@ -103,42 +107,39 @@ export const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           <Image source={{ uri: item.image }} style={styles.productImage} resizeMode="cover" />
         ) : (
           <View style={styles.placeholderImage}>
-            <Package color="#64748b" size={28} />
+            <Package color={colors.textMuted} size={22} />
           </View>
         )}
       </View>
 
       <View style={styles.productInfo}>
-        <Text style={styles.productName}>{item.name}</Text>
-        <Text style={styles.productCategory}>{item.categoryName || item.category}</Text>
-        {!!item.material && <Text style={styles.productMaterial}>Material: {item.material}</Text>}
-        {!!item.shortDescription && (
-          <Text style={styles.productDesc} numberOfLines={2}>
-            {item.shortDescription}
+        <Text style={styles.productName} numberOfLines={1}>
+          {item.name}
+        </Text>
+        <Text style={styles.productCategory}>
+          {item.categoryName || item.category}
+        </Text>
+        {!!item.material && (
+          <Text style={styles.productMaterial} numberOfLines={1}>
+            {item.material}
           </Text>
         )}
-
-        <View style={styles.badgeRow}>
-          {item.featured && (
-            <View style={[styles.badge, styles.featuredBadge]}>
-              <Text style={styles.badgeText}>Featured</Text>
-            </View>
-          )}
-          <View style={[styles.badge, item.available ? styles.availableBadge : styles.unavailableBadge]}>
-            <Text style={styles.badgeText}>{item.available ? 'In Stock' : 'Out of Stock'}</Text>
-          </View>
-        </View>
       </View>
 
-      <View style={styles.actionColumn}>
+      <View style={styles.actionButtons}>
         <TouchableOpacity
-          style={styles.editButton}
+          style={styles.actionButton}
           onPress={() => navigation.navigate('AddEditProduct', { product: item })}
+          activeOpacity={0.7}
         >
-          <Edit3 color="#ffffff" size={16} />
+          <Edit3 color={colors.textSecondary} size={15} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteProduct(item)}>
-          <Trash2 color="#ffffff" size={16} />
+        <TouchableOpacity
+          style={[styles.actionButton, styles.deleteButton]}
+          onPress={() => handleDeleteProduct(item)}
+          activeOpacity={0.7}
+        >
+          <Trash2 color={colors.dangerLight} size={15} />
         </TouchableOpacity>
       </View>
     </View>
@@ -146,38 +147,52 @@ export const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 
   return (
     <View style={styles.container}>
-      {/* Search Bar & Add Button */}
-      <View style={styles.topBar}>
+      <AppHeader
+        title="Products"
+        subtitle={`${products.length} items listed`}
+        rightAction={
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => navigation.navigate('AddEditProduct')}
+            activeOpacity={0.8}
+          >
+            <Plus color="#ffffff" size={16} />
+            <Text style={styles.addButtonText}>Add</Text>
+          </TouchableOpacity>
+        }
+      />
+
+      {/* Search Input Bar */}
+      <View style={styles.searchSection}>
         <View style={styles.searchWrapper}>
-          <Search color="#64748b" size={18} style={styles.searchIcon} />
+          <Search color={colors.textSecondary} size={16} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search products catalogue..."
-            placeholderTextColor="#64748b"
+            placeholder="Search catalogue..."
+            placeholderTextColor={colors.textPlaceholder}
             value={searchQuery}
             onChangeText={setSearchQuery}
             onSubmitEditing={handleSearchSubmit}
             returnKeyType="search"
           />
         </View>
-
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => navigation.navigate('AddEditProduct')}
-          activeOpacity={0.8}
-        >
-          <Plus color="#ffffff" size={20} />
-        </TouchableOpacity>
       </View>
 
       {/* Category Pills horizontal list */}
-      <View style={styles.categoriesPillsContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillsScroll}>
+      <View style={styles.pillsWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.pillsScroll}
+        >
           <TouchableOpacity
             style={[styles.pill, selectedCategory === 'all' && styles.pillActive]}
             onPress={() => setSelectedCategory('all')}
+            activeOpacity={0.7}
           >
-            <Text style={[styles.pillText, selectedCategory === 'all' && styles.pillTextActive]}>All Items</Text>
+            <Text style={[styles.pillText, selectedCategory === 'all' && styles.pillTextActive]}>
+              All Items
+            </Text>
           </TouchableOpacity>
 
           {categories.map((cat) => (
@@ -185,8 +200,14 @@ export const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
               key={cat.id}
               style={[styles.pill, selectedCategory === cat.slug && styles.pillActive]}
               onPress={() => setSelectedCategory(cat.slug)}
+              activeOpacity={0.7}
             >
-              <Text style={[styles.pillText, selectedCategory === cat.slug && styles.pillTextActive]}>
+              <Text
+                style={[
+                  styles.pillText,
+                  selectedCategory === cat.slug && styles.pillTextActive,
+                ]}
+              >
                 {cat.name}
               </Text>
             </TouchableOpacity>
@@ -194,23 +215,38 @@ export const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         </ScrollView>
       </View>
 
-      {/* List */}
+      {/* Products List */}
       {loading ? (
         <View style={styles.loadingCenter}>
-          <ActivityIndicator size="large" color="#10b981" />
+          <ActivityIndicator size="large" color={colors.emerald} />
         </View>
       ) : (
         <FlatList
           data={products}
           keyExtractor={(item) => item.id}
           renderItem={renderProductItem}
-          contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10b981" />}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: 80 + insets.bottom },
+          ]}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.emerald}
+              colors={[colors.emerald]}
+            />
+          }
+          showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Package color="#475569" size={48} />
+              <Package color={colors.textMuted} size={40} />
               <Text style={styles.emptyTitle}>No Products Found</Text>
-              <Text style={styles.emptySubtitle}>Try adjusting your search query or category filter.</Text>
+              <Text style={styles.emptySubtitle}>
+                {searchQuery
+                  ? 'No products matched your search term.'
+                  : 'Add your first product to this category.'}
+              </Text>
             </View>
           }
         />
@@ -222,70 +258,73 @@ export const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.background,
   },
-  topBar: {
+  addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-    gap: 10,
+    backgroundColor: colors.emerald,
+    paddingHorizontal: 10,
+    height: 32,
+    borderRadius: borderRadius.sm,
+    gap: 4,
+  },
+  addButtonText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  searchSection: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xs,
   },
   searchWrapper: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1e293b',
-    borderRadius: 14,
+    backgroundColor: colors.inputBg,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
-    borderColor: '#334155',
-    paddingHorizontal: 12,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    height: 40,
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   searchInput: {
     flex: 1,
-    height: 44,
-    color: '#ffffff',
-    fontSize: 14,
+    color: colors.textPrimary,
+    fontSize: 13,
+    fontWeight: '500',
   },
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: '#10b981',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  categoriesPillsContainer: {
-    marginBottom: 8,
+  pillsWrapper: {
+    marginBottom: spacing.xs,
   },
   pillsScroll: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
   },
   pill: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
-    backgroundColor: '#1e293b',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: colors.border,
   },
   pillActive: {
-    backgroundColor: '#10b981',
-    borderColor: '#10b981',
+    backgroundColor: colors.emeraldSubtle,
+    borderColor: 'rgba(16, 185, 129, 0.4)',
   },
   pillText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#94a3b8',
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
   },
   pillTextActive: {
-    color: '#ffffff',
+    color: colors.emerald,
   },
   loadingCenter: {
     flex: 1,
@@ -293,27 +332,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    padding: 16,
-    gap: 12,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
   },
   productCard: {
     flexDirection: 'row',
-    backgroundColor: '#1e293b',
-    borderRadius: 16,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#334155',
     alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.sm,
   },
   productImageContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 12,
-    backgroundColor: '#0f172a',
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.inputBg,
     overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#334155',
-    marginRight: 12,
+    borderColor: colors.border,
   },
   productImage: {
     width: '100%',
@@ -326,86 +367,58 @@ const styles = StyleSheet.create({
   },
   productInfo: {
     flex: 1,
+    marginLeft: spacing.md,
   },
   productName: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textPrimary,
   },
   productCategory: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#10b981',
+    fontWeight: '600',
+    color: colors.gold,
     marginTop: 2,
   },
   productMaterial: {
     fontSize: 10,
-    color: '#94a3b8',
-    marginTop: 2,
+    color: colors.textMuted,
+    marginTop: 1,
   },
-  productDesc: {
-    fontSize: 11,
-    color: '#cbd5e1',
-    marginTop: 4,
-  },
-  badgeRow: {
+  actionButtons: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
-    marginTop: 6,
+    marginLeft: spacing.sm,
   },
-  badge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  featuredBadge: {
-    backgroundColor: '#d97706',
-  },
-  availableBadge: {
-    backgroundColor: '#059669',
-  },
-  unavailableBadge: {
-    backgroundColor: '#dc2626',
-  },
-  badgeText: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: '#ffffff',
-  },
-  actionColumn: {
-    gap: 8,
-    marginLeft: 8,
-  },
-  editButton: {
+  actionButton: {
     width: 32,
     height: 32,
-    borderRadius: 8,
-    backgroundColor: '#3b82f6',
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.cardElevated,
+    borderWidth: 1,
+    borderColor: colors.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
   deleteButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: '#ef4444',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: colors.dangerSubtle,
+    borderColor: 'rgba(239, 68, 68, 0.25)',
   },
   emptyContainer: {
     alignItems: 'center',
     paddingVertical: 48,
   },
   emptyTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#ffffff',
-    marginTop: 12,
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginTop: spacing.md,
   },
   emptySubtitle: {
     fontSize: 12,
-    color: '#64748b',
-    textAlign: 'center',
+    color: colors.textMuted,
     marginTop: 4,
+    textAlign: 'center',
   },
 });
