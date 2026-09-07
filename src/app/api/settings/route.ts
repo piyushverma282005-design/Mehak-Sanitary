@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
 import { businessSettingsSchema } from '@/lib/validations';
 import { getBusinessSettings } from '@/lib/settings';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 300;
 
 // Public GET website settings
 export async function GET() {
@@ -14,7 +13,7 @@ export async function GET() {
     const settings = await getBusinessSettings();
     return NextResponse.json(settings, {
       headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
       },
     });
   } catch (error) {
@@ -93,6 +92,10 @@ export async function PUT(request: Request) {
     });
 
     // Revalidate Edge CDN cache and static pages
+    try {
+      revalidateTag('settings', 'max');
+    } catch {}
+
     revalidatePath('/');
     revalidatePath('/products');
     revalidatePath('/about');

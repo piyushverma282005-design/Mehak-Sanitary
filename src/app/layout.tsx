@@ -1,19 +1,29 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { getBusinessSettings } from '@/lib/settings';
+import { SettingsProvider } from '@/context/SettingsContext';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
+  display: 'swap',
 });
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+  display: 'swap',
 });
+
+export const viewport: Viewport = {
+  themeColor: '#0f172a',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mehak-sanitary.com';
 
@@ -100,9 +110,11 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-slate-900 selection:text-white">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <SettingsProvider settings={settings}>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </SettingsProvider>
       </body>
     </html>
   );

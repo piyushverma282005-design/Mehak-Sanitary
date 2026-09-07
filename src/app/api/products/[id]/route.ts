@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
 import { productSchema } from '@/lib/validations';
@@ -96,6 +96,11 @@ export async function PUT(request: Request, { params }: RouteParams) {
       include: { category: true },
     });
 
+    try {
+      revalidateTag('products', 'max');
+      revalidateTag(`product-${slug}`, 'max');
+    } catch {}
+
     revalidatePath('/products');
     revalidatePath('/');
     revalidatePath(`/products/${slug}`);
@@ -121,6 +126,13 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     const deleted = await prisma.product.delete({
       where: { id },
     });
+
+    try {
+      revalidateTag('products', 'max');
+      if (deleted?.slug) {
+        revalidateTag(`product-${deleted.slug}`, 'max');
+      }
+    } catch {}
 
     revalidatePath('/products');
     revalidatePath('/');

@@ -5,8 +5,13 @@ import { FeaturedProducts } from '@/components/home/FeaturedProducts';
 import { BusinessCTA } from '@/components/home/BusinessCTA';
 import { AboutPreview } from '@/components/home/AboutPreview';
 import { ContactPreview } from '@/components/home/ContactPreview';
+import { getCachedProducts } from '@/lib/productsCache';
 
-export default function HomePage() {
+export const revalidate = 60;
+
+export default async function HomePage() {
+  const products = await getCachedProducts();
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* SECTION 1 — HERO */}
@@ -19,7 +24,7 @@ export default function HomePage() {
       <WhyChooseUs />
 
       {/* SECTION 4 — FEATURED PRODUCT AREA ("Built for Modern Bathrooms") */}
-      <FeaturedProducts />
+      <FeaturedProducts initialProducts={products} />
 
       {/* SECTION 5 — BUSINESS CTA */}
       <BusinessCTA />

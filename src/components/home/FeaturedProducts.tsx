@@ -5,25 +5,32 @@ import { SectionHeading } from '../ui/SectionHeading';
 import { ProductCard } from '../ui/ProductCard';
 import { Button } from '../ui/Button';
 import { EnquiryModal } from '../ui/EnquiryModal';
-import { productsData as initialProducts } from '@/data/products';
+import { productsData as fallbackProducts } from '@/data/products';
 import { Product } from '@/types';
 import { ArrowRight } from 'lucide-react';
 
-export const FeaturedProducts: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+export interface FeaturedProductsProps {
+  initialProducts?: Product[];
+}
+
+export const FeaturedProducts: React.FC<FeaturedProductsProps> = ({ initialProducts }) => {
+  const [products, setProducts] = useState<Product[]>(initialProducts || fallbackProducts);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
   useEffect(() => {
-    fetch('/api/products', { cache: 'no-store' })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setProducts(data);
-        }
-      })
-      .catch((err) => console.error('Featured products fetch error:', err));
-  }, []);
+    // Only fetch if initialProducts was not supplied
+    if (!initialProducts || initialProducts.length === 0) {
+      fetch('/api/products')
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setProducts(data);
+          }
+        })
+        .catch((err) => console.error('Featured products fetch error:', err));
+    }
+  }, [initialProducts]);
 
   const handleEnquire = (product: Product) => {
     setSelectedProduct(product);

@@ -5,7 +5,10 @@ import { ProductDetailView } from '@/components/products/ProductDetailView';
 import { prisma } from '@/lib/prisma';
 import { Product } from '@/types';
 
-export const revalidate = 0;
+import { cache } from 'react';
+import { getCachedProductBySlug } from '@/lib/productsCache';
+
+export const revalidate = 60;
 
 interface ProductPageProps {
   params: Promise<{
@@ -15,43 +18,13 @@ interface ProductPageProps {
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mehak-sanitary.com';
 
-async function getProductBySlug(slug: string): Promise<Product | null> {
-  try {
-    const dbProduct = await prisma.product.findUnique({
-      where: { slug },
-      include: { category: true },
-    });
-
-    if (dbProduct) {
-      return {
-        id: dbProduct.id,
-        name: dbProduct.name,
-        slug: dbProduct.slug,
-        category: dbProduct.category.slug as any,
-        categoryName: dbProduct.category.name,
-        shortDescription: dbProduct.shortDescription || '',
-        description: dbProduct.description,
-        material: dbProduct.material || undefined,
-        image: dbProduct.image,
-        gallery: dbProduct.gallery || [],
-        specifications: (dbProduct.specifications as any) || [],
-        isFeatured: dbProduct.featured,
-        featured: dbProduct.featured,
-        available: dbProduct.available,
-      };
-    }
-  } catch (error) {
-    console.error('Error fetching product from DB by slug:', error);
-  }
-
-  // Fallback to static productsData
-  const staticProduct = productsData.find((p) => p.slug === slug);
-  return staticProduct || null;
-}
+const getProduct = cache(async (slug: string): Promise<Product | null> => {
+  return getCachedProductBySlug(slug);
+});
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const product = await getProduct(slug);
 
   if (!product) {
     return {
@@ -103,7 +76,7 @@ export async function generateStaticParams() {
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const product = await getProduct(slug);
 
   if (!product) {
     notFound();

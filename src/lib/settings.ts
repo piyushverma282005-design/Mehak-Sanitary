@@ -47,7 +47,9 @@ export const defaultSettings: BusinessSettingsData = {
   youtubeUrl: null,
 };
 
-export async function getBusinessSettings(): Promise<BusinessSettingsData> {
+import { unstable_cache } from 'next/cache';
+
+async function fetchBusinessSettingsFromDb(): Promise<BusinessSettingsData> {
   try {
     const settings = await prisma.businessSettings.findUnique({
       where: { id: 'global' },
@@ -83,3 +85,12 @@ export async function getBusinessSettings(): Promise<BusinessSettingsData> {
 
   return defaultSettings;
 }
+
+export const getBusinessSettings = unstable_cache(
+  fetchBusinessSettingsFromDb,
+  ['business-settings-global'],
+  {
+    revalidate: 300,
+    tags: ['settings'],
+  }
+);
