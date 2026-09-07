@@ -12,24 +12,25 @@ export const uploadService = {
     let fileToAppend: any;
 
     try {
-      // In React Native / Expo SDK 57, fetching local file URI into Blob/File object
-      // creates a native FormDataPart binary stream that prevents 'Unsupported FormDataPart implementation' errors.
-      const response = await fetch(imageUri);
-      const blob = await response.blob();
+      // In Expo SDK 57 / React Native 0.86, check if standard Web File constructor is available
       if (typeof File !== 'undefined') {
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
         fileToAppend = new File([blob], filename, { type: mimeType });
       } else {
-        fileToAppend = Object.assign(blob, {
+        // Fallback for native React Native FormData file part (never mutate read-only Blob properties)
+        fileToAppend = {
+          uri: imageUri,
           name: filename,
           type: mimeType,
-        });
+        };
       }
     } catch (e) {
-      console.warn('[UploadService] Falling back to standard RN file object:', e);
+      console.warn('[UploadService] Falling back to React Native file object:', e);
       fileToAppend = {
         uri: imageUri,
-        type: mimeType,
         name: filename,
+        type: mimeType,
       };
     }
 
