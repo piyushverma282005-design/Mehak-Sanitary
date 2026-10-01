@@ -2,17 +2,24 @@
 
 import React from 'react';
 import { Search, X, SlidersHorizontal } from 'lucide-react';
-import { categoriesData } from '@/data/categories';
+
+export interface FilterCategoryItem {
+  id: string;
+  name: string;
+  slug: string;
+}
 
 export interface ProductFilterProps {
+  categories: FilterCategoryItem[];
   searchQuery: string;
   onSearchChange: (query: string) => void;
   selectedCategory: string;
-  onCategoryChange: (category: string) => void;
+  onCategoryChange: (categorySlug: string) => void;
   totalResultsCount: number;
 }
 
 export const ProductFilter: React.FC<ProductFilterProps> = ({
+  categories,
   searchQuery,
   onSearchChange,
   selectedCategory,
@@ -54,9 +61,9 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
             onChange={(e) => onCategoryChange(e.target.value)}
             className="w-full px-3 py-2.5 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs text-slate-900 font-medium focus:ring-2 focus:ring-slate-900 outline-none"
           >
-            <option value="all">All Categories</option>
-            {categoriesData.map((cat) => (
-              <option key={cat.id} value={cat.id}>
+            <option value="all">All Products</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.slug}>
                 {cat.name}
               </option>
             ))}
@@ -75,12 +82,12 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
           >
             All Products
           </button>
-          {categoriesData.map((cat) => {
-            const active = selectedCategory === cat.id;
+          {categories.map((cat) => {
+            const active = selectedCategory === cat.slug || selectedCategory === cat.id;
             return (
               <button
                 key={cat.id}
-                onClick={() => onCategoryChange(cat.id)}
+                onClick={() => onCategoryChange(cat.slug)}
                 className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 border cursor-pointer ${
                   active
                     ? 'bg-slate-900 text-white border-slate-900 shadow-xs'

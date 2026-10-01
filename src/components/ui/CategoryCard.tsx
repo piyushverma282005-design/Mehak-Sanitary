@@ -55,7 +55,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
         </p>
 
         <Link
-          href={`/products?category=${category.id}`}
+          href={`/products?category=${category.slug || category.id}`}
           className="inline-flex items-center text-sm font-semibold text-slate-900 group-hover:text-slate-700 transition-colors gap-1.5 mt-auto pt-2 border-t border-slate-100"
         >
           <span>View Products</span>

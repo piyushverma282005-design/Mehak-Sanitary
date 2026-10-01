@@ -91,16 +91,31 @@ export const Footer: React.FC = () => {
               Categories
             </h4>
             <ul className="space-y-2.5 text-sm">
-              {categoriesData.map((cat) => (
-                <li key={cat.id}>
-                  <Link
-                    href={`/products?category=${cat.id}`}
-                    className="hover:text-white transition-colors"
-                  >
-                    {cat.name}
-                  </Link>
-                </li>
-              ))}
+              <li>
+                <Link href="/products" className="hover:text-white transition-colors">
+                  All Products
+                </Link>
+              </li>
+              <li>
+                <Link href="/products?category=health-faucets" className="hover:text-white transition-colors">
+                  Health Faucets
+                </Link>
+              </li>
+              <li>
+                <Link href="/products?category=waste-couplings" className="hover:text-white transition-colors">
+                  Waste Couplings
+                </Link>
+              </li>
+              <li>
+                <Link href="/products?category=floor-jalis" className="hover:text-white transition-colors">
+                  Floor Jalis
+                </Link>
+              </li>
+              <li>
+                <Link href="/products?category=sink-strainers" className="hover:text-white transition-colors">
+                  Sink Strainers
+                </Link>
+              </li>
             </ul>
           </div>
 

@@ -2,8 +2,10 @@ import React, { Suspense } from 'react';
 import { Metadata } from 'next';
 import { ProductCatalogueClient } from '@/components/products/ProductCatalogueClient';
 import { getCachedProducts } from '@/lib/productsCache';
+import { getCachedCategories } from '@/lib/categoriesCache';
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: 'Products Catalogue | Mehak Sanitary Hardware',
@@ -12,7 +14,10 @@ export const metadata: Metadata = {
 };
 
 export default async function ProductsPage() {
-  const products = await getCachedProducts();
+  const [products, categories] = await Promise.all([
+    getCachedProducts(),
+    getCachedCategories(),
+  ]);
 
   return (
     <Suspense
@@ -22,7 +27,7 @@ export default async function ProductsPage() {
         </div>
       }
     >
-      <ProductCatalogueClient initialProducts={products} />
+      <ProductCatalogueClient initialProducts={products} categories={categories} />
     </Suspense>
   );
 }

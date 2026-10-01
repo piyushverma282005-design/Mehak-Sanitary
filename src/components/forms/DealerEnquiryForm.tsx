@@ -1,13 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Send, CheckCircle2, Building2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { DealerEnquiryFormData, BusinessType } from '@/types';
-import { categoriesData } from '@/data/categories';
 
 export const DealerEnquiryForm: React.FC = () => {
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    fetch('/api/categories', { headers: { 'Cache-Control': 'no-cache' } })
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setCategories(data);
+      })
+      .catch(() => {});
+  }, []);
   const [formData, setFormData] = useState<DealerEnquiryFormData>({
     name: '',
     phone: '',
@@ -228,7 +237,7 @@ export const DealerEnquiryForm: React.FC = () => {
               Interested Products (Optional - Click to select)
             </label>
             <div className="flex flex-wrap gap-2">
-              {categoriesData.map((cat) => {
+              {categories.map((cat) => {
                 const selected = (formData.interestedProducts || []).includes(cat.name);
                 return (
                   <button

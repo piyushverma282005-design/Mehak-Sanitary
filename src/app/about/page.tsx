@@ -6,7 +6,7 @@ import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Card } from '@/components/ui/Card';
 import { B2BCards } from '@/components/shared/B2BCards';
 import { FAQSection } from '@/components/shared/FAQSection';
-import { categoriesData } from '@/data/categories';
+import { getCachedCategories } from '@/lib/categoriesCache';
 import { getBusinessSettings } from '@/lib/settings';
 import { Layers, Headphones, CheckCircle2, ArrowRight } from 'lucide-react';
 
@@ -17,7 +17,10 @@ export const metadata: Metadata = {
 };
 
 export default async function AboutPage() {
-  const settings = await getBusinessSettings();
+  const [settings, dbCategories] = await Promise.all([
+    getBusinessSettings(),
+    getCachedCategories(),
+  ]);
   const approachItems = [
     {
       title: 'Product Variety',
@@ -78,7 +81,7 @@ export default async function AboutPage() {
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {categoriesData.map((category) => (
+            {dbCategories.map((category) => (
               <Card
                 key={category.id}
                 className="p-6 flex flex-col justify-between bg-slate-50/70 border border-slate-200/80 hover:border-slate-300"
@@ -89,7 +92,7 @@ export default async function AboutPage() {
                   </span>
                   <h3 className="text-lg font-bold text-slate-900 mb-2">{category.name}</h3>
                   <p className="text-xs text-slate-600 leading-relaxed mb-6">
-                    {category.shortDescription}
+                    {category.description || `Explore ${category.name} range by Mehak.`}
                   </p>
                 </div>
                 <Link

@@ -3,24 +3,29 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { ProductFilter } from '@/components/products/ProductFilter';
+import { ProductFilter, FilterCategoryItem } from '@/components/products/ProductFilter';
 import { ProductGrid } from '@/components/products/ProductGrid';
 import { EnquiryModal } from '@/components/ui/EnquiryModal';
 import { Product } from '@/types';
 
 export interface ProductCatalogueClientProps {
   initialProducts: Product[];
+  categories: FilterCategoryItem[];
 }
 
-export function ProductCatalogueClient({ initialProducts }: ProductCatalogueClientProps) {
+export function ProductCatalogueClient({ initialProducts, categories }: ProductCatalogueClientProps) {
   const searchParams = useSearchParams();
   const initialCategory = searchParams?.get('category') || 'all';
 
-  const [products] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
+
+  useEffect(() => {
+    setProducts(initialProducts);
+  }, [initialProducts]);
 
   useEffect(() => {
     const cat = searchParams?.get('category');
@@ -38,13 +43,15 @@ export function ProductCatalogueClient({ initialProducts }: ProductCatalogueClie
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const matchesCategory =
-        selectedCategory === 'all' || product.category === selectedCategory;
+        selectedCategory === 'all' ||
+        product.category === selectedCategory ||
+        product.categoryName?.toLowerCase() === selectedCategory.toLowerCase();
 
       const query = searchQuery.trim().toLowerCase();
       const matchesSearch =
         query === '' ||
         product.name.toLowerCase().includes(query) ||
-        product.categoryName.toLowerCase().includes(query) ||
+        (product.categoryName && product.categoryName.toLowerCase().includes(query)) ||
         (product.shortDescription && product.shortDescription.toLowerCase().includes(query));
 
       return matchesCategory && matchesSearch;
@@ -66,8 +73,9 @@ export function ProductCatalogueClient({ initialProducts }: ProductCatalogueClie
           align="center"
         />
 
-        {/* Search & Category Filter */}
+        {/* Search & Dynamic Category Filter */}
         <ProductFilter
+          categories={categories}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           selectedCategory={selectedCategory}

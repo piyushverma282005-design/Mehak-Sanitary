@@ -9,13 +9,13 @@ export type ProductCategory =
   | 'other-sanitary-hardware';
 
 export interface Category {
-  id: ProductCategory;
+  id: string;
   name: string;
   slug: string;
-  shortDescription: string;
-  description: string;
+  shortDescription?: string;
+  description?: string;
   imageUrl?: string | null;
-  featured: boolean;
+  featured?: boolean;
 }
 
 export interface ProductSpecification {
@@ -27,7 +27,7 @@ export interface Product {
   id: string;
   name: string;
   slug: string;
-  category: ProductCategory;
+  category: string;
   categoryName: string;
   shortDescription: string;
   description: string;
