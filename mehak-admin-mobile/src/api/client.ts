@@ -2,17 +2,10 @@ import * as SecureStore from 'expo-secure-store';
 
 export const PRODUCTION_API_URL = 'https://mehak-sanitary.vercel.app';
 
-// Always resolve to the secure production Vercel backend URL for physical Android devices,
-// strictly enforcing HTTPS and preventing localhost / 127.0.0.1 / 10.0.2.2 leaks.
+// Resolves API base URL from EXPO_PUBLIC_API_URL when set, defaulting to secure production Vercel backend URL.
 export const getApiBaseUrl = (): string => {
   const envUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
-  if (
-    envUrl &&
-    envUrl.startsWith('https://') &&
-    !envUrl.includes('localhost') &&
-    !envUrl.includes('127.0.0.1') &&
-    !envUrl.includes('10.0.2.2')
-  ) {
+  if (envUrl) {
     return envUrl.replace(/\/+$/, '');
   }
   return PRODUCTION_API_URL;
