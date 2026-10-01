@@ -8,6 +8,7 @@ import { Product } from '@/types';
 import { cache } from 'react';
 import { getCachedProductBySlug } from '@/lib/productsCache';
 
+export const dynamicParams = true;
 export const revalidate = 60;
 
 interface ProductPageProps {
@@ -23,7 +24,8 @@ const getProduct = cache(async (slug: string): Promise<Product | null> => {
 });
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = decodeURIComponent(rawSlug).trim();
   const product = await getProduct(slug);
 
   if (!product) {
@@ -75,7 +77,8 @@ export async function generateStaticParams() {
 }
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = decodeURIComponent(rawSlug).trim();
   const product = await getProduct(slug);
 
   if (!product) {

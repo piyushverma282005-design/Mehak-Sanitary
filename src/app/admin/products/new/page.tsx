@@ -12,7 +12,6 @@ import {
   X,
   Upload,
   Layers,
-  FileText,
   Sliders,
   CheckCircle2,
 } from 'lucide-react';
@@ -95,6 +94,30 @@ export default function AddProductPage() {
     setSpecifications(specifications.filter((_, i) => i !== index));
   };
 
+  const [userModifiedSlug, setUserModifiedSlug] = useState(false);
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setName(val);
+    if (!userModifiedSlug) {
+      setSlug(
+        val
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)+/g, '')
+      );
+    }
+  };
+
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUserModifiedSlug(true);
+    setSlug(
+      e.target.value
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, '-')
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !categoryId || !description.trim()) {
@@ -106,16 +129,21 @@ export default function AddProductPage() {
     setError('');
 
     try {
+      const cleanSlug = (slug.trim() || name.trim())
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+
       const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name,
-          slug: slug.trim() || undefined,
+          name: name.trim(),
+          slug: cleanSlug || undefined,
           categoryId,
-          shortDescription,
-          description,
-          material,
+          shortDescription: shortDescription.trim(),
+          description: description.trim(),
+          material: material.trim(),
           featured,
           available,
           image,
@@ -184,7 +212,7 @@ export default function AddProductPage() {
                   required
                   placeholder="e.g. Heavy Brass Angle Valve"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={handleNameChange}
                   className="w-full px-3.5 py-2.5 text-xs font-medium border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none"
                 />
               </div>
@@ -216,7 +244,7 @@ export default function AddProductPage() {
                   type="text"
                   placeholder="brass-angle-valve"
                   value={slug}
-                  onChange={(e) => setSlug(e.target.value)}
+                  onChange={handleSlugChange}
                   className="w-full px-3.5 py-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-900 outline-none font-mono text-slate-600"
                 />
               </div>

@@ -139,16 +139,21 @@ export default function EditProductPage() {
     setSuccess(false);
 
     try {
+      const cleanSlug = (slug.trim() || name.trim())
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+
       const res = await fetch(`/api/products/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name,
-          slug: slug.trim() || undefined,
+          name: name.trim(),
+          slug: cleanSlug || undefined,
           categoryId,
-          shortDescription,
-          description,
-          material,
+          shortDescription: shortDescription.trim(),
+          description: description.trim(),
+          material: material.trim(),
           featured,
           available,
           image,
@@ -164,6 +169,7 @@ export default function EditProductPage() {
       }
 
       setSuccess(true);
+      router.refresh();
       setTimeout(() => setSuccess(false), 4000);
     } catch (err) {
       console.error('Update product error:', err);

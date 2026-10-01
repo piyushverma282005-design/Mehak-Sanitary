@@ -3,6 +3,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
 import { productSchema } from '@/lib/validations';
+import { ProductSpecification } from '@/types';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -39,7 +40,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         available: product.available,
         image: product.image,
         gallery: product.gallery,
-        specifications: (product.specifications as any) || [],
+        specifications: (product.specifications as unknown as ProductSpecification[]) || [],
         createdAt: product.createdAt,
         updatedAt: product.updatedAt,
       },
@@ -76,7 +77,12 @@ export async function PUT(request: Request, { params }: RouteParams) {
     }
 
     const data = validation.data;
-    const slug = data.slug || data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    const rawSlug = data.slug && data.slug.trim() ? data.slug : data.name;
+    const slug = rawSlug
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
 
     const updatedProduct = await prisma.product.update({
       where: { id },
@@ -97,12 +103,14 @@ export async function PUT(request: Request, { params }: RouteParams) {
     });
 
     try {
-      revalidateTag('products', 'max');
-      revalidateTag(`product-${slug}`, 'max');
-    } catch {}
+      revalidateTag('products', 'default');
+    } catch (e) {
+      console.error('revalidateTag error:', e);
+    }
 
     revalidatePath('/products');
     revalidatePath('/');
+    revalidatePath('/products/[slug]', 'page');
     revalidatePath(`/products/${slug}`);
     revalidatePath('/api/products');
 
@@ -128,14 +136,14 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     });
 
     try {
-      revalidateTag('products', 'max');
-      if (deleted?.slug) {
-        revalidateTag(`product-${deleted.slug}`, 'max');
-      }
-    } catch {}
+      revalidateTag('products', 'default');
+    } catch (e) {
+      console.error('revalidateTag error:', e);
+    }
 
     revalidatePath('/products');
     revalidatePath('/');
+    revalidatePath('/products/[slug]', 'page');
     if (deleted?.slug) {
       revalidatePath(`/products/${deleted.slug}`);
     }

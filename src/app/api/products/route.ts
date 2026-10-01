@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { getAdminSession } from '@/lib/auth';
 import { productSchema } from '@/lib/validations';
 
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
     const search = searchParams.get('search');
     const featuredOnly = searchParams.get('featured') === 'true';
 
-    const whereClause: any = {};
+    const whereClause: Prisma.ProductWhereInput = {};
 
     if (featuredOnly) {
       whereClause.featured = true;
@@ -112,12 +113,24 @@ export async function POST(request: Request) {
     }
 
     const data = validation.data;
-    const slug = data.slug || data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    const rawSlug = data.slug && data.slug.trim() ? data.slug : data.name;
+    let slug = rawSlug
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+
+    if (!slug) {
+      slug = `product-${Date.now()}`;
+    }
 
     // Check slug uniqueness
     const existing = await prisma.product.findUnique({ where: { slug } });
     if (existing) {
-      return NextResponse.json({ error: 'Product with this slug already exists' }, { status: 400 });
+      if (data.slug && data.slug.trim()) {
+        return NextResponse.json({ error: 'Product with this slug already exists' }, { status: 400 });
+      }
+      slug = `${slug}-${Date.now().toString().slice(-4)}`;
     }
 
     const newProduct = await prisma.product.create({
@@ -139,12 +152,14 @@ export async function POST(request: Request) {
 
     // Revalidate Edge CDN cache & Next.js static pages
     try {
-      revalidateTag('products', 'max');
-    } catch {
-      // safe fallback
+      revalidateTag('products', 'default');
+    } catch (e) {
+      console.error('revalidateTag error:', e);
     }
     revalidatePath('/products');
     revalidatePath('/');
+    revalidatePath('/products/[slug]', 'page');
+    revalidatePath(`/products/${slug}`);
     revalidatePath('/api/products');
 
     return NextResponse.json(newProduct, { status: 201 });
