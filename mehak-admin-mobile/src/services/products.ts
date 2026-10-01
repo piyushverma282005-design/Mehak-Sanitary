@@ -13,9 +13,16 @@ export const productsService = {
     if (params?.featured) {
       query.append('featured', 'true');
     }
+    query.append('_t', Date.now().toString());
 
     const endpoint = `/api/products${query.toString() ? `?${query.toString()}` : ''}`;
-    return apiFetch<Product[]>(endpoint, { method: 'GET', requiresAuth: false });
+    return apiFetch<Product[]>(endpoint, {
+      method: 'GET',
+      requiresAuth: false,
+      headers: {
+        'Cache-Control': 'no-cache, no-store',
+      },
+    });
   },
 
   async getProduct(idOrSlug: string): Promise<Product> {

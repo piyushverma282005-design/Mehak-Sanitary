@@ -89,6 +89,7 @@ export const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
             try {
               setLoading(true);
               await productsService.deleteProduct(product.id);
+              setProducts((prev) => prev.filter((p) => p.id !== product.id && p.slug !== product.slug));
               await fetchProductsAndCategories();
             } catch (err: any) {
               Alert.alert('Error', err?.message || 'Failed to delete product.');

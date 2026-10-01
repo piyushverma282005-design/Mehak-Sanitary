@@ -81,11 +81,14 @@ export async function GET(request: Request) {
       updatedAt: p.updatedAt,
     }));
 
+    const requestCacheHeader = request.headers.get('cache-control');
+    const isNoCacheRequested = requestCacheHeader?.includes('no-cache') || requestCacheHeader?.includes('no-store');
+
     return NextResponse.json(mapped, {
       headers: {
-        'Cache-Control': search
-          ? 'private, no-cache'
-          : 'public, s-maxage=60, stale-while-revalidate=300',
+        'Cache-Control': isNoCacheRequested || search
+          ? 'no-cache, no-store, must-revalidate'
+          : 'public, max-age=0, s-maxage=5, stale-while-revalidate=30',
       },
     });
   } catch (error) {

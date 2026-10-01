@@ -32,7 +32,7 @@ async function fetchProductsFromDb(): Promise<Product[]> {
       orderBy: { createdAt: 'desc' },
     });
 
-    if (products && products.length > 0) {
+    if (products) {
       return products.map((p) => ({
         id: p.id,
         name: p.name,
@@ -52,9 +52,10 @@ async function fetchProductsFromDb(): Promise<Product[]> {
     }
   } catch (error) {
     console.error('Error fetching products from DB in cache helper:', error);
+    return fallbackProducts;
   }
 
-  return fallbackProducts;
+  return [];
 }
 
 export const getCachedProducts = unstable_cache(

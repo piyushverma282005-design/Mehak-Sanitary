@@ -34,6 +34,12 @@
           "backgroundColor": "#000000"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "dcf29a4f-cd4a-4926-bf1c-f530b438feda"
+      }
+    },
+    "owner": "piyushhr36"
   }
 }
