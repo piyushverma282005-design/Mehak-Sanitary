@@ -53,11 +53,11 @@ export const publicEnquirySchema = z.object({
 
 export const productSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
-  slug: z.string().optional(),
+  slug: z.string().nullable().optional(),
   categoryId: z.string().min(1, 'Category is required'),
-  shortDescription: z.string().optional(),
+  shortDescription: z.string().nullable().optional(),
   description: z.string().min(1, 'Description is required'),
-  material: z.string().optional(),
+  material: z.string().nullable().optional(),
   featured: z.boolean().default(false),
   available: z.boolean().default(true),
   image: z.string().nullable().optional(),

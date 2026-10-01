@@ -11,11 +11,21 @@ interface RouteParams {
 
 // GET single product by id or slug
 export async function GET(request: Request, { params }: RouteParams) {
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const id = decodeURIComponent(rawId).trim();
+  const normalizedSlug = id.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
   try {
     const product = await prisma.product.findFirst({
       where: {
-        OR: [{ id }, { slug: id }],
+        OR: [
+          { id: rawId },
+          { id },
+          { slug: rawId },
+          { slug: id },
+          { slug: normalizedSlug },
+          { slug: { equals: id, mode: 'insensitive' } },
+        ],
       },
       include: { category: true },
     });
@@ -50,9 +60,13 @@ export async function GET(request: Request, { params }: RouteParams) {
         },
       }
     );
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching product:', error);
-    return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to fetch product';
+    return NextResponse.json(
+      { error: 'Failed to fetch product', details: message },
+      { status: 500 }
+    );
   }
 }
 
@@ -63,9 +77,29 @@ export async function PUT(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const id = decodeURIComponent(rawId).trim();
+  const normalizedParamSlug = id.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
   try {
+    // Find the existing product record by ID or slug
+    const existingProduct = await prisma.product.findFirst({
+      where: {
+        OR: [
+          { id: rawId },
+          { id },
+          { slug: rawId },
+          { slug: id },
+          { slug: normalizedParamSlug },
+          { slug: { equals: id, mode: 'insensitive' } },
+        ],
+      },
+    });
+
+    if (!existingProduct) {
+      return NextResponse.json({ error: 'Product not found in database' }, { status: 404 });
+    }
+
     const body = await request.json();
     const validation = productSchema.safeParse(body);
 
@@ -78,25 +112,50 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     const data = validation.data;
     const rawSlug = data.slug && data.slug.trim() ? data.slug : data.name;
-    const slug = rawSlug
+    let slug = rawSlug
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)+/g, '');
 
+    if (!slug) {
+      slug = `product-${existingProduct.id.slice(0, 8)}`;
+    }
+
+    // Check if ANOTHER product already has this slug
+    const slugCollision = await prisma.product.findFirst({
+      where: {
+        slug,
+        NOT: { id: existingProduct.id },
+      },
+    });
+
+    if (slugCollision) {
+      slug = `${slug}-${existingProduct.id.slice(0, 4)}`;
+      const stillCollides = await prisma.product.findFirst({
+        where: {
+          slug,
+          NOT: { id: existingProduct.id },
+        },
+      });
+      if (stillCollides) {
+        slug = `${slug}-${Date.now().toString().slice(-4)}`;
+      }
+    }
+
     const updatedProduct = await prisma.product.update({
-      where: { id },
+      where: { id: existingProduct.id },
       data: {
         name: data.name,
         slug,
         categoryId: data.categoryId,
-        shortDescription: data.shortDescription,
+        shortDescription: data.shortDescription || '',
         description: data.description,
-        material: data.material,
+        material: data.material || null,
         featured: data.featured,
         available: data.available,
-        image: data.image,
-        gallery: data.gallery,
+        image: data.image !== undefined ? data.image : existingProduct.image,
+        gallery: data.gallery && data.gallery.length > 0 ? data.gallery : existingProduct.gallery,
         specifications: data.specifications,
       },
       include: { category: true },
@@ -108,16 +167,34 @@ export async function PUT(request: Request, { params }: RouteParams) {
       console.error('revalidateTag error:', e);
     }
 
-    revalidatePath('/products');
-    revalidatePath('/');
-    revalidatePath('/products/[slug]', 'page');
-    revalidatePath(`/products/${slug}`);
-    revalidatePath('/api/products');
+    try {
+      revalidatePath('/products');
+      revalidatePath('/');
+      revalidatePath('/products/[slug]', 'page');
+      revalidatePath(`/products/${slug}`);
+      if (existingProduct.slug && existingProduct.slug !== slug) {
+        revalidatePath(`/products/${existingProduct.slug}`);
+      }
+      revalidatePath('/api/products');
+    } catch (e) {
+      console.error('revalidatePath error:', e);
+    }
 
     return NextResponse.json(updatedProduct);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error updating product:', error);
-    return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to update product';
+    const isUniqueConstraint = Boolean(
+      (error && typeof error === 'object' && 'code' in error && (error as { code?: string }).code === 'P2002') ||
+      message.includes('Unique constraint')
+    );
+    return NextResponse.json(
+      {
+        error: isUniqueConstraint ? 'A product with this URL slug already exists.' : message,
+        details: message,
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -128,11 +205,30 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { id } = await params;
+  const { id: rawId } = await params;
+  const id = decodeURIComponent(rawId).trim();
+  const normalizedParamSlug = id.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
   try {
+    const existing = await prisma.product.findFirst({
+      where: {
+        OR: [
+          { id: rawId },
+          { id },
+          { slug: rawId },
+          { slug: id },
+          { slug: normalizedParamSlug },
+          { slug: { equals: id, mode: 'insensitive' } },
+        ],
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Product not found in database' }, { status: 404 });
+    }
+
     const deleted = await prisma.product.delete({
-      where: { id },
+      where: { id: existing.id },
     });
 
     try {
@@ -141,17 +237,25 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       console.error('revalidateTag error:', e);
     }
 
-    revalidatePath('/products');
-    revalidatePath('/');
-    revalidatePath('/products/[slug]', 'page');
-    if (deleted?.slug) {
-      revalidatePath(`/products/${deleted.slug}`);
+    try {
+      revalidatePath('/products');
+      revalidatePath('/');
+      revalidatePath('/products/[slug]', 'page');
+      if (deleted?.slug) {
+        revalidatePath(`/products/${deleted.slug}`);
+      }
+      revalidatePath('/api/products');
+    } catch (e) {
+      console.error('revalidatePath error:', e);
     }
-    revalidatePath('/api/products');
 
     return NextResponse.json({ message: 'Product deleted successfully' });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error deleting product:', error);
-    return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to delete product';
+    return NextResponse.json(
+      { error: message, details: message },
+      { status: 500 }
+    );
   }
 }

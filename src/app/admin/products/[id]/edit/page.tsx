@@ -15,6 +15,7 @@ import {
   Layers,
   Sliders,
   CheckCircle2,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { compressImageFile } from '@/lib/imageCompression';
@@ -168,9 +169,12 @@ export default function EditProductPage() {
         return;
       }
 
+      if (data?.slug) {
+        setSlug(data.slug);
+      }
       setSuccess(true);
       router.refresh();
-      setTimeout(() => setSuccess(false), 4000);
+      setTimeout(() => setSuccess(false), 5000);
     } catch (err) {
       console.error('Update product error:', err);
       setError('Connection error during product update.');
@@ -199,6 +203,14 @@ export default function EditProductPage() {
           <ArrowLeft className="w-4 h-4" />
           Back to Catalogue
         </Link>
+        <Link
+          href={`/products/${slug || id}`}
+          target="_blank"
+          className="inline-flex items-center text-xs font-bold text-emerald-700 hover:text-emerald-800 gap-1"
+        >
+          <span>View Live Product</span>
+          <ExternalLink className="w-3.5 h-3.5" />
+        </Link>
       </div>
 
       <div className="space-y-6">
@@ -216,9 +228,19 @@ export default function EditProductPage() {
         )}
 
         {success && (
-          <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-2xl flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>Product updated successfully in PostgreSQL database!</span>
+          <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-2xl flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Product updated successfully in PostgreSQL database!</span>
+            </div>
+            <Link
+              href={`/products/${slug || id}`}
+              target="_blank"
+              className="text-emerald-800 hover:text-emerald-950 underline font-black ml-4 shrink-0 flex items-center gap-1"
+            >
+              <span>View Details</span>
+              <ExternalLink className="w-3 h-3" />
+            </Link>
           </div>
         )}
 
