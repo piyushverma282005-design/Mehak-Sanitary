@@ -3,7 +3,13 @@ import { Category } from '../types';
 
 export const categoriesService = {
   async getCategories(): Promise<Category[]> {
-    return apiFetch<Category[]>('/api/categories', { method: 'GET', requiresAuth: false });
+    return apiFetch<Category[]>(`/api/categories?_t=${Date.now()}`, {
+      method: 'GET',
+      requiresAuth: false,
+      headers: {
+        'Cache-Control': 'no-cache, no-store',
+      },
+    });
   },
 
   async createCategory(categoryData: { name: string; slug?: string; description?: string }): Promise<Category> {

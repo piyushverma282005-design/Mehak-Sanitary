@@ -5,7 +5,7 @@ import { getAdminSession } from '@/lib/auth';
 import { categorySchema } from '@/lib/validations';
 
 // Public GET categories
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const categories = await prisma.category.findMany({
       orderBy: { name: 'asc' },
@@ -13,9 +13,14 @@ export async function GET() {
         _count: { select: { products: true } },
       },
     });
+    const requestCacheHeader = request.headers.get('cache-control');
+    const isNoCacheRequested = requestCacheHeader?.includes('no-cache') || requestCacheHeader?.includes('no-store');
+
     return NextResponse.json(categories, {
       headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        'Cache-Control': isNoCacheRequested
+          ? 'no-cache, no-store, must-revalidate'
+          : 'public, max-age=0, s-maxage=5, stale-while-revalidate=30',
       },
     });
   } catch (error: unknown) {
