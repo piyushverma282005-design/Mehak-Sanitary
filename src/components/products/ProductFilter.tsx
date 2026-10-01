@@ -83,7 +83,10 @@ export const ProductFilter: React.FC<ProductFilterProps> = ({
             All Products
           </button>
           {categories.map((cat) => {
-            const active = selectedCategory === cat.slug || selectedCategory === cat.id;
+            const active =
+              selectedCategory === cat.slug ||
+              selectedCategory === cat.id ||
+              selectedCategory.toLowerCase() === cat.name.toLowerCase();
             return (
               <button
                 key={cat.id}

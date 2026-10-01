@@ -31,6 +31,8 @@ export function ProductCatalogueClient({ initialProducts, categories }: ProductC
     const cat = searchParams?.get('category');
     if (cat) {
       setSelectedCategory(cat);
+    } else {
+      setSelectedCategory('all');
     }
   }, [searchParams]);
 
@@ -39,13 +41,30 @@ export function ProductCatalogueClient({ initialProducts, categories }: ProductC
     setIsEnquiryOpen(true);
   };
 
+  // Find active category object if selectedCategory is passed as UUID, slug, or name
+  const activeCategoryObj = useMemo(() => {
+    if (!selectedCategory || selectedCategory === 'all') return null;
+    return categories.find(
+      (c) =>
+        c.id === selectedCategory ||
+        c.slug === selectedCategory ||
+        c.name.toLowerCase() === selectedCategory.toLowerCase()
+    );
+  }, [categories, selectedCategory]);
+
   // Real-time filter across product name, category, or description
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const matchesCategory =
         selectedCategory === 'all' ||
+        !selectedCategory ||
         product.category === selectedCategory ||
-        product.categoryName?.toLowerCase() === selectedCategory.toLowerCase();
+        (product as any).categoryId === selectedCategory ||
+        product.categoryName?.toLowerCase() === selectedCategory.toLowerCase() ||
+        (activeCategoryObj &&
+          (product.category === activeCategoryObj.slug ||
+           (product as any).categoryId === activeCategoryObj.id ||
+           product.categoryName?.toLowerCase() === activeCategoryObj.name.toLowerCase()));
 
       const query = searchQuery.trim().toLowerCase();
       const matchesSearch =
@@ -56,7 +75,7 @@ export function ProductCatalogueClient({ initialProducts, categories }: ProductC
 
       return matchesCategory && matchesSearch;
     });
-  }, [products, searchQuery, selectedCategory]);
+  }, [products, searchQuery, selectedCategory, activeCategoryObj]);
 
   const handleResetFilters = () => {
     setSearchQuery('');
