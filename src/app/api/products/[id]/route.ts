@@ -169,8 +169,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     try {
       revalidatePath('/products');
+      revalidatePath('/admin/products');
       revalidatePath('/');
-      revalidatePath('/products/[slug]', 'page');
       revalidatePath(`/products/${slug}`);
       if (existingProduct.slug && existingProduct.slug !== slug) {
         revalidatePath(`/products/${existingProduct.slug}`);
@@ -239,8 +239,8 @@ export async function DELETE(request: Request, { params }: RouteParams) {
 
     try {
       revalidatePath('/products');
+      revalidatePath('/admin/products');
       revalidatePath('/');
-      revalidatePath('/products/[slug]', 'page');
       if (deleted?.slug) {
         revalidatePath(`/products/${deleted.slug}`);
       }

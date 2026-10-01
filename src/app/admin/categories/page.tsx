@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, FolderTree, RefreshCw, X, Save, Layers } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Plus, Edit, Trash2, FolderTree, RefreshCw, X, Save } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 interface CategoryItem {
@@ -25,8 +25,10 @@ export default function AdminCategoriesPage() {
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const fetchCategories = async () => {
-    setLoading(true);
+  const [pageError, setPageError] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const fetchCategories = useCallback(async () => {
     try {
       const res = await fetch('/api/categories');
       if (res.ok) {
@@ -38,10 +40,19 @@ export default function AdminCategoriesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchCategories();
+    fetch('/api/categories')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        setCategories(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Error fetching categories:', err);
+        setLoading(false);
+      });
   }, []);
 
   const handleOpenAddModal = () => {
@@ -65,15 +76,23 @@ export default function AdminCategoriesPage() {
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Are you sure you want to delete category "${name}"?`)) return;
 
+    setDeletingId(id);
+    setPageError('');
+
     try {
       const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => null);
+
       if (res.ok) {
         setCategories(categories.filter((c) => c.id !== id));
       } else {
-        alert('Failed to delete category. Ensure no products depend on it.');
+        setPageError(data?.error || 'Failed to delete category.');
       }
     } catch (err) {
       console.error('Error deleting category:', err);
+      setPageError('Connection error while deleting category.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -144,6 +163,18 @@ export default function AdminCategoriesPage() {
         </Button>
       </div>
 
+      {pageError && (
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold rounded-2xl flex items-center justify-between">
+          <span>{pageError}</span>
+          <button
+            onClick={() => setPageError('')}
+            className="text-rose-500 hover:text-rose-800 font-bold ml-3"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Categories Table */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
         {loading ? (
@@ -198,10 +229,19 @@ export default function AdminCategoriesPage() {
                         </button>
                         <button
                           onClick={() => handleDelete(cat.id, cat.name)}
-                          className="p-2 rounded-xl text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer border border-transparent hover:border-rose-200"
-                          title="Delete Category"
+                          disabled={deletingId === cat.id}
+                          className="p-2 rounded-xl text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer border border-transparent hover:border-rose-200 disabled:opacity-50"
+                          title={
+                            cat._count?.products && cat._count.products > 0
+                              ? `Cannot delete while ${cat._count.products} products are linked`
+                              : 'Delete Category'
+                          }
                         >
-                          <Trash2 className="w-4 h-4" />
+                          {deletingId === cat.id ? (
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
                         </button>
                       </div>
                     </td>

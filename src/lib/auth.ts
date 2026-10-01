@@ -79,6 +79,15 @@ export async function getAdminSession(request?: Request): Promise<AdminPayload |
       const payload = verifySessionToken(bearerToken);
       if (payload) return payload;
     }
+
+    const cookieHeader = request.headers.get('cookie');
+    if (cookieHeader) {
+      const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]*)`));
+      if (match && match[1]) {
+        const payload = verifySessionToken(decodeURIComponent(match[1]));
+        if (payload) return payload;
+      }
+    }
   }
 
   const cookieStore = await cookies();

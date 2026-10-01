@@ -67,8 +67,8 @@ export const productSchema = z.object({
 
 export const categorySchema = z.object({
   name: z.string().min(1, 'Category name is required'),
-  slug: z.string().optional(),
-  description: z.string().optional(),
+  slug: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
 });
 
 export const updateEnquiryStatusSchema = z.object({

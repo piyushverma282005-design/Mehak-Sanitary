@@ -25,44 +25,40 @@ export default function AdminProductsPage() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [resProd, resCat] = await Promise.all([
-        fetch('/api/products'),
-        fetch('/api/categories'),
-      ]);
-
-      const prodData = resProd.ok ? await resProd.json() : [];
-      const catData = resCat.ok ? await resCat.json() : [];
-
-      setProducts(prodData);
-      setCategories(catData);
-    } catch (err) {
-      console.error('Error fetching admin products:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [pageError, setPageError] = useState('');
 
   useEffect(() => {
-    fetchData();
+    Promise.all([fetch('/api/products'), fetch('/api/categories')])
+      .then(async ([resProd, resCat]) => {
+        const prodData = resProd.ok ? await resProd.json() : [];
+        const catData = resCat.ok ? await resCat.json() : [];
+        setProducts(prodData);
+        setCategories(catData);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Error fetching admin products:', err);
+        setLoading(false);
+      });
   }, []);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this product?')) return;
     setDeletingId(id);
+    setPageError('');
 
     try {
       const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => null);
+
       if (res.ok) {
         setProducts(products.filter((p) => p.id !== id));
       } else {
-        alert('Failed to delete product.');
+        setPageError(data?.error || 'Failed to delete product.');
       }
     } catch (err) {
       console.error('Delete error:', err);
+      setPageError('Network connection error while deleting product.');
     } finally {
       setDeletingId(null);
     }
@@ -140,6 +136,18 @@ export default function AdminProductsPage() {
           </select>
         </div>
       </div>
+
+      {pageError && (
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold rounded-2xl flex items-center justify-between">
+          <span>{pageError}</span>
+          <button
+            onClick={() => setPageError('')}
+            className="text-rose-500 hover:text-rose-800 font-bold ml-3"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Product Table */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
@@ -228,10 +236,14 @@ export default function AdminProductsPage() {
                         <button
                           onClick={() => handleDelete(p.id)}
                           disabled={deletingId === p.id}
-                          className="p-2 rounded-xl text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer border border-transparent hover:border-rose-200"
+                          className="p-2 rounded-xl text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer border border-transparent hover:border-rose-200 disabled:opacity-50"
                           title="Delete Product"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          {deletingId === p.id ? (
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
                         </button>
                       </div>
                     </td>

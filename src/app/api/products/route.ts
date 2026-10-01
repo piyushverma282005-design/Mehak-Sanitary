@@ -156,15 +156,21 @@ export async function POST(request: Request) {
     } catch (e) {
       console.error('revalidateTag error:', e);
     }
-    revalidatePath('/products');
-    revalidatePath('/');
-    revalidatePath('/products/[slug]', 'page');
-    revalidatePath(`/products/${slug}`);
-    revalidatePath('/api/products');
+
+    try {
+      revalidatePath('/products');
+      revalidatePath('/admin/products');
+      revalidatePath('/');
+      revalidatePath(`/products/${slug}`);
+      revalidatePath('/api/products');
+    } catch (e) {
+      console.error('revalidatePath error:', e);
+    }
 
     return NextResponse.json(newProduct, { status: 201 });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error creating product:', error);
-    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to create product';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

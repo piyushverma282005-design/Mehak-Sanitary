@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
 import { categorySchema } from '@/lib/validations';
@@ -17,9 +18,10 @@ export async function GET() {
         'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching categories:', error);
-    return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to fetch categories';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -42,7 +44,9 @@ export async function POST(request: Request) {
     }
 
     const { name, description } = validation.data;
-    const slug = validation.data.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    const rawSlug = validation.data.slug && validation.data.slug.trim() ? validation.data.slug : name;
+    let slug = rawSlug.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    if (!slug) slug = `category-${Date.now()}`;
 
     // Check slug uniqueness
     const existing = await prisma.category.findUnique({ where: { slug } });
@@ -51,12 +55,29 @@ export async function POST(request: Request) {
     }
 
     const newCategory = await prisma.category.create({
-      data: { name, slug, description },
+      data: { name: name.trim(), slug, description: description?.trim() || null },
     });
 
+    try {
+      revalidateTag('categories', 'default');
+      revalidateTag('products', 'default');
+    } catch (e) {
+      console.error('revalidateTag error:', e);
+    }
+
+    try {
+      revalidatePath('/admin/categories');
+      revalidatePath('/products');
+      revalidatePath('/');
+      revalidatePath('/api/categories');
+    } catch (e) {
+      console.error('revalidatePath error:', e);
+    }
+
     return NextResponse.json(newCategory, { status: 201 });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error creating category:', error);
-    return NextResponse.json({ error: 'Failed to create category' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to create category';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
